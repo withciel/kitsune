@@ -120,9 +120,8 @@ export function CreateDatabaseDialog({
           </div>
           <div className="space-y-1.5">
             <Label id="create-db-scope-label">Scope</Label>
-            <div
-              className="flex gap-2"
-              role="group"
+            <fieldset
+              className="flex gap-2 border-0 p-0 m-0"
               aria-labelledby="create-db-scope-label"
             >
               <Button
@@ -143,7 +142,7 @@ export function CreateDatabaseDialog({
               >
                 Personal
               </Button>
-            </div>
+            </fieldset>
           </div>
           <DialogFooter>
             <Button type="submit" disabled={busy || !name.trim()}>

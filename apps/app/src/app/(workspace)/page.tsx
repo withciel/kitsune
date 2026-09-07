@@ -141,7 +141,9 @@ export default function WorkspaceHomePage() {
               {notesBusy ? 'Creating…' : 'Create personal notes'}
             </Button>
             {notesError ? (
-              <p className="basis-full text-sm text-destructive">{notesError}</p>
+              <p className="basis-full text-sm text-destructive">
+                {notesError}
+              </p>
             ) : null}
             <Button
               variant="outline"

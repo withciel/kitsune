@@ -1,10 +1,7 @@
 import { NextResponse } from 'next/server';
 import { engine } from '@/lib/engine';
 import { jsonError } from '@/lib/http-error';
-import {
-  isWorkspaceAdmin,
-  requireWorkspace,
-} from '@/lib/require-workspace';
+import { isWorkspaceAdmin, requireWorkspace } from '@/lib/require-workspace';
 
 /**
  * People + teams a member can share pages with (any workspace member).
