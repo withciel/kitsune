@@ -35,12 +35,12 @@ Kitsune should **not** abandon change sets / field grants. Extend them with Noti
 | N4 | General fetch/change API | REST (`/api/query`, `/api/records`, …) + MCP; **Bearer API key + OAuth** on data routes | — | **Shipped** |
 | N4b | OAuth apps create databases | `oauth_apps` + `/api/oauth/apps` + `/api/oauth/token` + `databases:create` | — | **Shipped** |
 | N5 | WYSIWYG prose | TipTap `ProseEditor` on prose fields | — | **Shipped** |
-| N6 | Obsidian-like graph | `/graph` UI + `/api/graph` distribution JSON | Force-directed interactive (drag/zoom/click) | **In progress** |
+| N6 | Obsidian-like graph | `/graph` + force-directed `ForceGraph` (d3-force drag/zoom/click) | Neighbor ACL still post-filters edges | **Shipped** |
 | N7 | Supermemory-like tools | MCP `memory_search|get|related|remember` over grant-visible pages | — | **Shipped** |
 | N8 | Kitsune-as-database for apps | OAuth service principal + `POST /api/collections` with bearer token | Full OAuth authorize UI (auth code) deferred | **MVP shipped** |
-| N9 | Multi-view DB tabs | Table view on collections | Board / list / gallery / calendar addable; Table always, none else by default | **In progress** |
-| N10 | Changes PR UI (née Inbox) | Change-set list + field diffs + partial apply | Nav rename + GitHub-style PR shell (tree, checks, merge) | **In progress** |
-| N11 | Agents sidebar + Claude-style labels | Connect Agents panel; capability ladder | First-class Agents page; No Access / Read Only / Change Request / Full write labels | **In progress** |
+| N9 | Multi-view DB tabs | Table always; Board/List/Gallery/Calendar via `/api/views` | — | **Shipped** |
+| N10 | Changes PR UI (née Inbox) | `/changes` list + PR detail (tree, diffs, comments, merge); `/inbox` redirects | — | **Shipped** |
+| N11 | Agents sidebar + Claude-style labels | `/agents` + profiles; AccessEditor; Connect agent picker | — | **Shipped** |
 
 ---
 

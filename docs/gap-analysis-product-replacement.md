@@ -16,7 +16,7 @@
 | **Headless CMS** | Content models, draft/publish, CRUD API, webhooks, media | Typed collections, change sets, engine webhooks/attachments | Publish lifecycle UX; webhook console; media library UI |
 | **Notes apps** | Instant capture, folders/tags, search, simple editor | Notes collection, private-by-default, ⌘K New note | Tags polish; mobile |
 | **Supermemory** | Grant-aware search/get/related/remember | MCP `memory_*` + page ACL post-filter | Compiler ACL in search; human memory UI (⌘K covers part) |
-| **Adjacent** | Wiki tree, Airtable views, Linear-lite | Relations/rollups; empty provision | Multi-views (board/list/gallery/calendar) in progress; no default DBs |
+| **Adjacent** | Wiki tree, Airtable views, Linear-lite | Relations/rollups; empty provision; multi-views | Timeline views deferred |
 
 ---
 

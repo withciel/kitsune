@@ -697,13 +697,13 @@ export function CollectionView({ collection }: { collection: string }) {
       {truncated ? (
         <p className="border-b border-border px-6 py-2 text-sm text-muted-foreground">
           Showing the first 100 pages. Narrow with search, or open a page from
-          Inbox / related links if you need something outside this list.
+          Changes / related links if you need something outside this list.
         </p>
       ) : null}
       {!canDirectEdit ? (
         <p className="border-b border-border px-6 py-2 text-sm text-muted-foreground">
           {capability === 'propose'
-            ? 'Your access can suggest changes (via AI / Inbox) but not edit pages directly here.'
+            ? 'Your access can suggest changes (via AI / Changes) but not edit pages directly here.'
             : 'Your access to this database is view-only.'}
         </p>
       ) : null}

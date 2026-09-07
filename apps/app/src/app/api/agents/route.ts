@@ -124,7 +124,7 @@ export async function POST(request: Request) {
       'write',
       null,
       null,
-      { adminOverrideAgentWrite: true, actorId: ctx.principalId },
+      { actorId: ctx.principalId },
     );
 
     let apiKeyPlaintext: string | null = null;

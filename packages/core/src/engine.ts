@@ -894,7 +894,7 @@ export class KitsuneEngine {
     capability: Capability,
     fieldMask: string[] | null,
     rowPredicate: Predicate | null,
-    options?: { adminOverrideAgentWrite?: boolean; actorId?: string },
+    options?: { actorId?: string },
   ): Promise<string> {
     const grantId = uuidv4();
     let principalKind: string | undefined;
