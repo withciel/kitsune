@@ -17,19 +17,22 @@ export async function GET(_request: Request, { params }: Params) {
       created_at: string;
       key_count: string;
       agent_membership: string | null;
-      agent_team_id: string | null;
+      agent_team_principal_id: string | null;
       agent_owner_principal_id: string | null;
     }>(
       `SELECT p.id, p.display_name, p.created_at::text AS created_at,
               count(k.id) FILTER (WHERE k.revoked_at IS NULL)::text AS key_count,
-              p.agent_membership, p.agent_team_id, p.agent_owner_principal_id
+              p.agent_membership,
+              t.principal_id AS agent_team_principal_id,
+              p.agent_owner_principal_id
          FROM kitsune.principals p
          LEFT JOIN kitsune.api_keys k ON k.principal_id = p.id
+         LEFT JOIN kitsune.teams t ON t.id = p.agent_team_id
         WHERE p.id = $1
           AND p.workspace_id = $2
           AND p.kind = 'agent'
           AND p.disabled_at IS NULL
-        GROUP BY p.id`,
+        GROUP BY p.id, t.principal_id`,
       [agentId, ctx.workspaceId],
     );
     const row = agent.rows[0];
@@ -77,7 +80,7 @@ export async function GET(_request: Request, { params }: Params) {
         createdAt: row.created_at,
         activeKeyCount: Number(row.key_count),
         membership: row.agent_membership ?? 'workspace',
-        teamId: row.agent_team_id,
+        teamId: row.agent_team_principal_id,
         ownerPrincipalId: row.agent_owner_principal_id,
       },
       canManageAccess,

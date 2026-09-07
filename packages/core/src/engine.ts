@@ -594,13 +594,13 @@ export class KitsuneEngine {
     }
     const agentMembership =
       kind === 'agent' ? (options?.agentMembership ?? 'workspace') : null;
-    const agentTeamId =
+    const rawAgentTeamId =
       agentMembership === 'team' ? (options?.agentTeamId ?? null) : null;
     const agentOwnerPrincipalId =
       agentMembership === 'personal'
         ? (options?.agentOwnerPrincipalId ?? null)
         : null;
-    if (kind === 'agent' && agentMembership === 'team' && !agentTeamId) {
+    if (kind === 'agent' && agentMembership === 'team' && !rawAgentTeamId) {
       throw new KitsuneError(
         'agentTeamId is required for team agents',
         'validation',
@@ -615,6 +615,24 @@ export class KitsuneEngine {
         'agentOwnerPrincipalId is required for personal agents',
         'validation',
       );
+    }
+    // agent_team_id FK is kitsune.teams(id). Callers (console) often pass the
+    // team's principal_id from share-targets; accept either and store teams.id.
+    let agentTeamId: string | null = null;
+    if (rawAgentTeamId) {
+      const team = await withOwner(this.ownerPool, async (client) =>
+        queryOne<{ id: string }>(
+          client,
+          `SELECT id FROM kitsune.teams
+            WHERE workspace_id = $1
+              AND (id = $2 OR principal_id = $2)`,
+          [workspaceId, rawAgentTeamId],
+        ),
+      );
+      if (!team) {
+        throw new KitsuneError('Team not found', 'not_found');
+      }
+      agentTeamId = team.id;
     }
     await withOwner(this.ownerPool, async (client) => {
       await client.query(
