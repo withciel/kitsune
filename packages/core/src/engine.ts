@@ -74,7 +74,7 @@ import {
   listTeams as listTeamRows,
   removeTeamMember,
 } from './org/memberships.js';
-import { canViewPage, filterVisibleRecordIds } from './org/page-access.js';
+import { canViewPage } from './org/page-access.js';
 import {
   type SweepRevisionsResult,
   sweepExpiredRevisions,
@@ -1068,11 +1068,7 @@ export class KitsuneEngine {
         [workspaceId, collectionName],
       );
       if (!collection) throw new KitsuneError('Not found', 'not_found');
-      const grant = await loadResolvedGrant(
-        client,
-        principalId,
-        collection.id,
-      );
+      const grant = await loadResolvedGrant(client, principalId, collection.id);
       if (!grant || grant.capability === 'none') {
         throw new KitsuneError('Not found', 'not_found');
       }
@@ -1101,11 +1097,7 @@ export class KitsuneEngine {
         [workspaceId, collectionName],
       );
       if (!collection) throw new KitsuneError('Not found', 'not_found');
-      const grant = await loadResolvedGrant(
-        client,
-        principalId,
-        collection.id,
-      );
+      const grant = await loadResolvedGrant(client, principalId, collection.id);
       if (
         !grant ||
         CAPABILITY_ORDER.indexOf(grant.capability) <
@@ -1282,11 +1274,6 @@ export class KitsuneEngine {
         compiled.sql,
         compiled.params,
       );
-      const meta = await getCollectionMeta(
-        client,
-        workspaceId,
-        request.collection,
-      );
       await writeAuditInTxn(client, {
         workspaceId,
         principalId,
@@ -1295,27 +1282,7 @@ export class KitsuneEngine {
         detail: { collection: request.collection },
       });
       await client.query('COMMIT');
-      // Aggregate result rows have no record id; page_access post-filtering
-      // only applies to row-level queries.
-      if (request.aggregates?.length) {
-        return rows;
-      }
-      const ids = rows
-        .map((row) => row.id)
-        .filter((id): id is string => typeof id === 'string');
-      // TODO(compiler-acl): compile page_access into row predicates instead of
-      // post-filtering after grant-scoped SELECT.
-      const visible = new Set(
-        await filterVisibleRecordIds(this.ownerPool, {
-          workspaceId,
-          collectionId: meta.id,
-          recordIds: ids,
-          principalId,
-        }),
-      );
-      return rows.filter(
-        (row) => typeof row.id === 'string' && visible.has(row.id),
-      );
+      return rows;
     } catch (error) {
       await client.query('ROLLBACK');
       if (error instanceof KitsuneError && error.code === 'forbidden') {

@@ -11,6 +11,7 @@ import type {
   RollupDefinition,
 } from '../types.js';
 import { KitsuneError, quoteIdent } from '../types.js';
+import { compilePageAccessPredicate } from './page-access-sql.js';
 import { compileFilter, compilePredicate } from './predicate-sql.js';
 
 export interface CollectionFieldMeta {
@@ -281,6 +282,20 @@ export async function compileQuery(
     whereParts.push(compiled.sql);
     params.push(...compiled.params);
     paramIdx += compiled.params.length;
+  }
+
+  // Page ACL is compiled into the WHERE clause for row queries (not aggregates).
+  if (!request.aggregates?.length) {
+    const pageAcl = await compilePageAccessPredicate(client, {
+      workspaceId,
+      collectionId: meta.id,
+      principalId,
+      rootAlias: ROOT_ALIAS,
+      paramStart: paramIdx,
+    });
+    whereParts.push(pageAcl.sql);
+    params.push(...pageAcl.params);
+    paramIdx = pageAcl.nextParam;
   }
 
   const whereClause = whereParts.length

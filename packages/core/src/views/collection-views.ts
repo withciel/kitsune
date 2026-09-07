@@ -1,12 +1,12 @@
 import type { PoolClient } from 'pg';
 import { v4 as uuidv4 } from 'uuid';
+import { queryOne, queryRows } from '../db/pool.js';
 import type {
   CollectionView,
   CollectionViewConfig,
   CollectionViewType,
 } from '../types.js';
 import { KitsuneError } from '../types.js';
-import { queryOne, queryRows } from '../db/pool.js';
 
 function parseConfig(raw: unknown): CollectionViewConfig {
   if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return {};
@@ -157,9 +157,7 @@ export async function updateCollectionView(
 
   const name = input.name?.trim() || existing.name;
   const config =
-    input.config !== undefined
-      ? input.config
-      : parseConfig(existing.config);
+    input.config !== undefined ? input.config : parseConfig(existing.config);
   const position = input.position ?? existing.position;
 
   await client.query(
@@ -188,7 +186,10 @@ export async function deleteCollectionView(
   );
   if (!existing) throw new KitsuneError('View not found', 'not_found');
   if (existing.is_default_table) {
-    throw new KitsuneError('Cannot delete the default Table view', 'validation');
+    throw new KitsuneError(
+      'Cannot delete the default Table view',
+      'validation',
+    );
   }
   await client.query(`DELETE FROM kitsune.collection_views WHERE id = $1`, [
     viewId,
