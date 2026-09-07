@@ -2,6 +2,7 @@
 
 const DISMISS_KEY = 'kitsuneos.onboarding.dismissed';
 const SEEN_CHANGES_KEY = 'kitsuneos.onboarding.seen-changes';
+const LEGACY_SEEN_INBOX_KEY = 'kitsuneos.onboarding.seen-inbox';
 
 export type OnboardingStepId =
   | 'create-database'
@@ -80,7 +81,12 @@ export function markChangesSeen(): void {
 
 function hasSeenChanges(): boolean {
   try {
-    return window.localStorage.getItem(SEEN_CHANGES_KEY) === '1';
+    if (window.localStorage.getItem(SEEN_CHANGES_KEY) === '1') return true;
+    if (window.localStorage.getItem(LEGACY_SEEN_INBOX_KEY) === '1') {
+      window.localStorage.setItem(SEEN_CHANGES_KEY, '1');
+      return true;
+    }
+    return false;
   } catch {
     return false;
   }

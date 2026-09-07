@@ -16,6 +16,7 @@ export default function WorkspaceHomePage() {
   const router = useRouter();
   const [boot, setBoot] = useState<BootState>({ kind: 'loading' });
   const [notesBusy, setNotesBusy] = useState(false);
+  const [notesError, setNotesError] = useState('');
 
   useEffect(() => {
     void fetch('/api/schema')
@@ -66,6 +67,7 @@ export default function WorkspaceHomePage() {
 
   async function createPersonalNotes() {
     setNotesBusy(true);
+    setNotesError('');
     try {
       const response = await fetch('/api/collections', {
         method: 'POST',
@@ -83,7 +85,8 @@ export default function WorkspaceHomePage() {
       const body = (await response.json()) as { error?: string };
       if (!response.ok) throw new Error(body.error ?? 'Create failed');
       router.push('/c/notes');
-    } catch {
+    } catch (err) {
+      setNotesError(err instanceof Error ? err.message : 'Create failed');
       setNotesBusy(false);
     }
   }
@@ -137,6 +140,9 @@ export default function WorkspaceHomePage() {
             >
               {notesBusy ? 'Creating…' : 'Create personal notes'}
             </Button>
+            {notesError ? (
+              <p className="basis-full text-sm text-destructive">{notesError}</p>
+            ) : null}
             <Button
               variant="outline"
               size="sm"

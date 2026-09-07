@@ -14,7 +14,10 @@ export async function GET(
       ctx.principalId,
       changeSetId,
     );
-    return NextResponse.json({ comments });
+    return NextResponse.json(
+      { comments },
+      { headers: { 'Cache-Control': 'no-store' } },
+    );
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     const status = message.includes('Not found') ? 404 : 400;
@@ -36,7 +39,9 @@ export async function POST(
       changeSetId,
       body.body ?? '',
     );
-    return NextResponse.json(result);
+    return NextResponse.json(result, {
+      headers: { 'Cache-Control': 'no-store' },
+    });
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     const status = message.includes('Not found') ? 404 : 400;

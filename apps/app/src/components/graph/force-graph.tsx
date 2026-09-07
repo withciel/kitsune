@@ -103,7 +103,13 @@ export function ForceGraph({
       .selectAll<SVGGElement, SimNode>('g')
       .data(simNodes, (d) => d.id)
       .join((enter) => {
-        const g = enter.append('g').attr('class', 'graph-node cursor-pointer');
+        const g = enter
+          .append('g')
+          .attr('class', 'graph-node cursor-pointer')
+          .attr('tabindex', '0')
+          .attr('role', 'link')
+          .attr('aria-label', (d) => `Open ${d.collection} page ${d.label}`)
+          .style('outline', 'none');
         g.append('circle')
           .attr('r', NODE_RADIUS)
           .attr('class', 'fill-primary/15 stroke-primary')
@@ -116,6 +122,11 @@ export function ForceGraph({
         g.append('title').text((d) => `${d.collection}: ${d.label}`);
         return g;
       });
+
+    function openNode(d: SimNode) {
+      const recordId = d.id.slice(d.collection.length + 1);
+      router.push(pageHref(recordId, d.collection));
+    }
 
     function setHighlight(activeId: string | null) {
       const neighbors = activeId ? neighborMap.get(activeId) : undefined;
@@ -142,10 +153,28 @@ export function ForceGraph({
     nodeSelection
       .on('mouseenter', (_event, d) => setHighlight(d.id))
       .on('mouseleave', () => setHighlight(null))
+      .on('focus', (event, d) => {
+        setHighlight(d.id);
+        select(event.currentTarget as SVGGElement)
+          .select('circle')
+          .attr('stroke-width', 3);
+      })
+      .on('blur', (event) => {
+        setHighlight(null);
+        select(event.currentTarget as SVGGElement)
+          .select('circle')
+          .attr('stroke-width', 1.5);
+      })
       .on('click', (event, d) => {
         event.stopPropagation();
-        const recordId = d.id.slice(d.collection.length + 1);
-        router.push(pageHref(recordId, d.collection));
+        openNode(d);
+      })
+      .on('keydown', (event, d) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          event.stopPropagation();
+          openNode(d);
+        }
       });
 
     const dragBehavior = d3Drag<SVGGElement, SimNode>()
@@ -215,8 +244,8 @@ export function ForceGraph({
       ref={svgRef}
       viewBox={`0 0 ${width} ${height}`}
       className="h-[640px] w-full touch-none"
-      role="img"
-      aria-label="Workspace page graph"
+      role="application"
+      aria-label="Interactive workspace page graph. Tab to nodes, Enter to open."
     >
       <g ref={zoomLayerRef}>
         <g className="links" />

@@ -284,18 +284,29 @@ export async function compileQuery(
     paramIdx += compiled.params.length;
   }
 
-  // Page ACL is compiled into the WHERE clause for row queries (not aggregates).
-  if (!request.aggregates?.length) {
-    const pageAcl = await compilePageAccessPredicate(client, {
+  // Page ACL applies to row and aggregate queries so counts cannot leak private pages.
+  const pageAcl = await compilePageAccessPredicate(client, {
+    workspaceId,
+    collectionId: meta.id,
+    principalId,
+    rootAlias: ROOT_ALIAS,
+    paramStart: paramIdx,
+  });
+  whereParts.push(pageAcl.sql);
+  params.push(...pageAcl.params);
+  paramIdx = pageAcl.nextParam;
+
+  if (joinMeta && joinAlias) {
+    const joinPageAcl = await compilePageAccessPredicate(client, {
       workspaceId,
-      collectionId: meta.id,
+      collectionId: joinMeta.id,
       principalId,
-      rootAlias: ROOT_ALIAS,
+      rootAlias: joinAlias,
       paramStart: paramIdx,
     });
-    whereParts.push(pageAcl.sql);
-    params.push(...pageAcl.params);
-    paramIdx = pageAcl.nextParam;
+    whereParts.push(joinPageAcl.sql);
+    params.push(...joinPageAcl.params);
+    paramIdx = joinPageAcl.nextParam;
   }
 
   const whereClause = whereParts.length

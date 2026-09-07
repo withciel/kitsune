@@ -151,6 +151,7 @@ import {
   deleteCollectionView,
   ensureDefaultTableView,
   listCollectionViews,
+  readCollectionViews,
   updateCollectionView,
 } from './views/collection-views.js';
 import {
@@ -793,6 +794,19 @@ export class KitsuneEngine {
         'validation',
       );
     }
+    if (definition.scope === 'personal' && definition.ownerPrincipalId) {
+      const owner = await this.ownerPool.query<{ id: string }>(
+        `SELECT id FROM kitsune.principals
+          WHERE id = $1 AND workspace_id = $2 AND disabled_at IS NULL`,
+        [definition.ownerPrincipalId, workspaceId],
+      );
+      if (!owner.rows[0]) {
+        throw new KitsuneError(
+          'ownerPrincipalId must be an active principal in this workspace',
+          'validation',
+        );
+      }
+    }
     const schemaName = schemaNameForWorkspace(workspaceId);
     const collectionId = uuidv4();
     const tableName = definition.name;
@@ -1008,17 +1022,8 @@ export class KitsuneEngine {
         if (!grant || grant.capability === 'none') {
           continue;
         }
-        // Personal collections are only visible to their owner (plus anyone
-        // explicitly granted — grant already loaded; hide from non-owners
-        // without a grant path is already handled). Non-owners with grants
-        // still see them; owners without needing special case for describe.
-        if (
-          collection.scope === 'personal' &&
-          collection.owner_principal_id &&
-          collection.owner_principal_id !== principalId
-        ) {
-          // Still allow if they have an explicit grant (already checked).
-        }
+        // Personal collections stay visible to any principal holding a grant;
+        // the grant check above is the only gate.
         const fields = await queryRows<{
           name: string;
           type: string;
@@ -1039,7 +1044,9 @@ export class KitsuneEngine {
         if (visibleFields.length === 0) {
           continue;
         }
-        const views = await listCollectionViews(client, collection.id);
+        // Default views are created by defineCollection and migration backfill;
+        // do not INSERT from this read path.
+        const views = await readCollectionViews(client, collection.id);
         result.push({
           id: collection.id,
           name: collection.name,
@@ -1197,7 +1204,7 @@ export class KitsuneEngine {
 
   async listChangeSetComments(
     workspaceId: string,
-    _principalId: string,
+    principalId: string,
     changeSetId: string,
   ): Promise<
     Array<{
@@ -1209,13 +1216,12 @@ export class KitsuneEngine {
     }>
   > {
     return withOwner(this.ownerPool, async (client) => {
-      const exists = await queryOne<{ id: string }>(
+      await this.assertChangeSetCommentAccess(
         client,
-        `SELECT id FROM kitsune.change_sets
-          WHERE id = $1 AND workspace_id = $2`,
-        [changeSetId, workspaceId],
+        workspaceId,
+        principalId,
+        changeSetId,
       );
-      if (!exists) throw new KitsuneError('Not found', 'not_found');
       const rows = await queryRows<{
         id: string;
         author_id: string;
@@ -1252,13 +1258,12 @@ export class KitsuneEngine {
       throw new KitsuneError('Comment body is required', 'validation');
     }
     return withOwner(this.ownerPool, async (client) => {
-      const exists = await queryOne<{ id: string }>(
+      await this.assertChangeSetCommentAccess(
         client,
-        `SELECT id FROM kitsune.change_sets
-          WHERE id = $1 AND workspace_id = $2`,
-        [changeSetId, workspaceId],
+        workspaceId,
+        principalId,
+        changeSetId,
       );
-      if (!exists) throw new KitsuneError('Not found', 'not_found');
       const id = uuidv4();
       await client.query(
         `INSERT INTO kitsune.change_set_comments
@@ -1268,6 +1273,48 @@ export class KitsuneEngine {
       );
       return { id };
     });
+  }
+
+  /**
+   * Author may always comment; other principals need at least read on one of
+   * the change set's collections (same visibility bar as reviewing ops).
+   */
+  private async assertChangeSetCommentAccess(
+    client: PoolClient,
+    workspaceId: string,
+    principalId: string,
+    changeSetId: string,
+  ): Promise<void> {
+    const changeSet = await queryOne<{ author_id: string }>(
+      client,
+      `SELECT author_id FROM kitsune.change_sets
+        WHERE id = $1 AND workspace_id = $2`,
+      [changeSetId, workspaceId],
+    );
+    if (!changeSet) throw new KitsuneError('Not found', 'not_found');
+    if (changeSet.author_id === principalId) return;
+
+    const collections = await queryRows<{ collection_id: string }>(
+      client,
+      `SELECT DISTINCT collection_id FROM kitsune.change_ops
+        WHERE change_set_id = $1`,
+      [changeSetId],
+    );
+    for (const row of collections) {
+      const grant = await loadResolvedGrant(
+        client,
+        principalId,
+        row.collection_id,
+      );
+      if (
+        grant &&
+        CAPABILITY_ORDER.indexOf(grant.capability) >=
+          CAPABILITY_ORDER.indexOf('read')
+      ) {
+        return;
+      }
+    }
+    throw new KitsuneError('Not found', 'not_found');
   }
 
   async query(

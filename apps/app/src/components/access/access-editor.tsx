@@ -249,8 +249,8 @@ export function AccessEditor({
           throw new Error(body.error ?? 'Could not remove page access');
         }
       } else {
-        const pageCapability =
-          capability === 'write' || capability === 'admin' ? 'full' : 'read';
+        // Page ACL only stores read | full; map Full write → full.
+        const pageCapability = capability === 'write' ? 'full' : 'read';
         const response = await fetch('/api/pages/access', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -266,7 +266,11 @@ export function AccessEditor({
           throw new Error(body.error ?? 'Could not share page');
         }
       }
-      setStatus(`${accessLabel(capability)} on “${selectedPage.label}”.`);
+      setStatus(
+        capability === 'none'
+          ? `Removed explicit page share for “${selectedPage.label}” (inherited access may remain).`
+          : `${accessLabel(capability)} on “${selectedPage.label}”.`,
+      );
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Could not save access');
     } finally {
@@ -312,20 +316,34 @@ export function AccessEditor({
       </div>
 
       <div className="flex flex-wrap gap-2">
-        {ACCESS_LEVELS.map((level) => (
+        {ACCESS_LEVELS.filter((level) => {
+          // Page shares only support none / read / full (write maps to full).
+          if (scope !== 'page') return true;
+          return (
+            level.value === 'none' ||
+            level.value === 'read' ||
+            level.value === 'write'
+          );
+        }).map((level) => (
           <Button
             key={level.value}
             size="sm"
             variant={capability === level.value ? 'default' : 'outline'}
             onClick={() => setCapability(level.value)}
-            title={level.description}
+            title={
+              scope === 'page' && level.value === 'none'
+                ? 'Removes an explicit page share. Inherited collection access still applies.'
+                : level.description
+            }
           >
             {level.label}
           </Button>
         ))}
       </div>
       <p className="text-xs text-muted-foreground">
-        {accessDescription(capability)}
+        {scope === 'page' && capability === 'none'
+          ? 'Removes an explicit page share only. Collection or workspace grants still apply.'
+          : accessDescription(capability)}
       </p>
 
       {scope === 'collection' ? (

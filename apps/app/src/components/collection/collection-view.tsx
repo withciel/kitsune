@@ -409,6 +409,7 @@ export function CollectionView({ collection }: { collection: string }) {
     (configPatch: Partial<CollectionViewConfig>) => {
       const view = activeView;
       if (!view) return;
+      const previousConfig = view.config;
       const nextConfig: CollectionViewConfig = {
         ...view.config,
         ...configPatch,
@@ -417,6 +418,11 @@ export function CollectionView({ collection }: { collection: string }) {
         prev.map((v) => (v.id === view.id ? { ...v, config: nextConfig } : v)),
       );
       void patchView(view.id, { config: nextConfig }).catch((err) => {
+        setViews((prev) =>
+          prev.map((v) =>
+            v.id === view.id ? { ...v, config: previousConfig } : v,
+          ),
+        );
         setError(err instanceof Error ? err.message : String(err));
       });
     },
@@ -459,12 +465,10 @@ export function CollectionView({ collection }: { collection: string }) {
       const res = await fetch(`/api/views/${view.id}`, { method: 'DELETE' });
       const body = (await res.json()) as { error?: string };
       if (!res.ok) throw new Error(body.error ?? 'Failed to delete view');
-      setViews((prev) => {
-        const next = prev.filter((v) => v.id !== view.id);
-        const table = next.find((v) => v.isDefaultTable);
-        setActiveViewId(table?.id ?? next[0]?.id ?? null);
-        return next;
-      });
+      const next = views.filter((v) => v.id !== view.id);
+      const table = next.find((v) => v.isDefaultTable);
+      setViews(next);
+      setActiveViewId(table?.id ?? next[0]?.id ?? null);
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
     }
@@ -607,7 +611,7 @@ export function CollectionView({ collection }: { collection: string }) {
 
       <div className="flex flex-wrap items-center gap-1 border-b border-border px-6 py-1.5">
         {views.map((view) => {
-          const meta = VIEW_TYPE_META[view.type];
+          const meta = VIEW_TYPE_META[view.type] ?? VIEW_TYPE_META.table;
           const Icon = meta.icon;
           const active = view.id === activeViewId;
           return (
@@ -1258,8 +1262,8 @@ function CalendarView({
           return (
             <div
               key={key}
-              className={`min-h-24 bg-background p-1.5 ${
-                inMonth ? '' : 'bg-muted/30 text-muted-foreground'
+              className={`min-h-24 p-1.5 ${
+                inMonth ? 'bg-background' : 'bg-muted/30 text-muted-foreground'
               } ${key === todayKey ? 'ring-1 ring-inset ring-primary' : ''}`}
             >
               <p className="mb-1 text-[11px] font-medium">{day.getDate()}</p>

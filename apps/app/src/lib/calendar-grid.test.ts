@@ -42,4 +42,10 @@ describe('calendar-grid', () => {
     assert.equal(parseDateFieldValue(null), null);
     assert.equal(parseDateFieldValue(undefined), null);
   });
+
+  it('parseDateFieldValue treats YYYY-MM-DD as a local calendar date', () => {
+    const parsed = parseDateFieldValue('2026-09-07');
+    assert.ok(parsed);
+    assert.equal(dayKey(parsed), '2026-09-07');
+  });
 });

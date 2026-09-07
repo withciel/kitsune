@@ -118,10 +118,19 @@ export default function ChangeDetailPage() {
     try {
       const payload = {
         changeSetId: item.id,
-        decisions: item.operations.map((op) => ({
-          opId: op.id,
-          status: decisions[op.id] ?? 'rejected',
-        })),
+        // Partial save: only persist explicit decisions. Apply still rejects
+        // undecided ops after the confirm above.
+        decisions: apply
+          ? item.operations.map((op) => ({
+              opId: op.id,
+              status: decisions[op.id] ?? 'rejected',
+            }))
+          : item.operations
+              .filter((op) => decisions[op.id])
+              .map((op) => ({
+                opId: op.id,
+                status: decisions[op.id] as 'approved' | 'rejected',
+              })),
         apply,
       };
       const response = await fetch('/api/review', {

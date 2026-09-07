@@ -42,7 +42,14 @@ export function monthGridDays(monthDate: Date): Date[] {
 export function parseDateFieldValue(value: JsonValue | undefined): Date | null {
   if (value === undefined || value === null) return null;
   if (typeof value === 'string') {
-    const parsed = new Date(value);
+    // Date-only strings are calendar dates in local time, not UTC midnight.
+    const parsed = /^\d{4}-\d{2}-\d{2}$/.test(value)
+      ? new Date(
+          Number(value.slice(0, 4)),
+          Number(value.slice(5, 7)) - 1,
+          Number(value.slice(8, 10)),
+        )
+      : new Date(value);
     return Number.isNaN(parsed.getTime()) ? null : parsed;
   }
   if (typeof value === 'number') {

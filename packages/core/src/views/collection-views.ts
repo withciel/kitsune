@@ -50,17 +50,29 @@ export async function ensureDefaultTableView(
   await client.query(
     `INSERT INTO kitsune.collection_views
        (id, collection_id, name, type, config, position, is_default_table)
-     VALUES ($1, $2, 'Table', 'table', '{}'::jsonb, 0, true)`,
+     VALUES ($1, $2, 'Table', 'table', '{}'::jsonb, 0, true)
+     ON CONFLICT (collection_id) WHERE (is_default_table = true)
+     DO NOTHING`,
     [id, collectionId],
   );
-  return id;
+  const ensured = await queryOne<{ id: string }>(
+    client,
+    `SELECT id FROM kitsune.collection_views
+      WHERE collection_id = $1 AND is_default_table = true
+      LIMIT 1`,
+    [collectionId],
+  );
+  if (!ensured) {
+    throw new KitsuneError('Failed to ensure default Table view', 'internal');
+  }
+  return ensured.id;
 }
 
-export async function listCollectionViews(
+/** Read-only listing — does not insert a default Table view. */
+export async function readCollectionViews(
   client: PoolClient,
   collectionId: string,
 ): Promise<CollectionView[]> {
-  await ensureDefaultTableView(client, collectionId);
   const rows = await queryRows<{
     id: string;
     collection_id: string;
@@ -78,6 +90,14 @@ export async function listCollectionViews(
     [collectionId],
   );
   return rows.map(mapView);
+}
+
+export async function listCollectionViews(
+  client: PoolClient,
+  collectionId: string,
+): Promise<CollectionView[]> {
+  await ensureDefaultTableView(client, collectionId);
+  return readCollectionViews(client, collectionId);
 }
 
 export async function createCollectionView(
@@ -158,7 +178,33 @@ export async function updateCollectionView(
   const name = input.name?.trim() || existing.name;
   const config =
     input.config !== undefined ? input.config : parseConfig(existing.config);
-  const position = input.position ?? existing.position;
+  let position = input.position ?? existing.position;
+
+  if (input.position !== undefined && input.position !== existing.position) {
+    // Shift siblings so ORDER BY position, created_at stays stable.
+    if (input.position < existing.position) {
+      await client.query(
+        `UPDATE kitsune.collection_views
+            SET position = position + 1
+          WHERE collection_id = $1
+            AND position >= $2
+            AND position < $3
+            AND id <> $4`,
+        [existing.collection_id, input.position, existing.position, viewId],
+      );
+    } else {
+      await client.query(
+        `UPDATE kitsune.collection_views
+            SET position = position - 1
+          WHERE collection_id = $1
+            AND position <= $2
+            AND position > $3
+            AND id <> $4`,
+        [existing.collection_id, input.position, existing.position, viewId],
+      );
+    }
+    position = input.position;
+  }
 
   await client.query(
     `UPDATE kitsune.collection_views

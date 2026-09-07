@@ -37,17 +37,31 @@ export default function ChangesPage() {
 
   useEffect(() => {
     markChangesSeen();
-    void fetch('/api/review?scope=all')
-      .then(async (response) => {
-        const body = (await response.json()) as {
+    void Promise.all([
+      fetch('/api/review?scope=open'),
+      fetch('/api/review?scope=closed'),
+    ])
+      .then(async ([openRes, closedRes]) => {
+        const openBody = (await openRes.json()) as {
           changeSets?: ChangeSetSummary[];
           error?: string;
         };
-        if (!response.ok) {
-          setError(body.error ?? 'Failed to load changes');
+        const closedBody = (await closedRes.json()) as {
+          changeSets?: ChangeSetSummary[];
+          error?: string;
+        };
+        if (!openRes.ok) {
+          setError(openBody.error ?? 'Failed to load changes');
           return;
         }
-        setItems(body.changeSets ?? []);
+        if (!closedRes.ok) {
+          setError(closedBody.error ?? 'Failed to load closed changes');
+          return;
+        }
+        setItems([
+          ...(openBody.changeSets ?? []),
+          ...(closedBody.changeSets ?? []),
+        ]);
       })
       .catch(() => setError('Failed to load changes'));
   }, []);

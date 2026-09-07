@@ -525,6 +525,11 @@ ALTER TABLE kitsune.collections
 ALTER TABLE kitsune.collections
   ADD COLUMN IF NOT EXISTS owner_principal_id uuid
     REFERENCES kitsune.principals(id);
+ALTER TABLE kitsune.collections
+  DROP CONSTRAINT IF EXISTS collections_personal_owner_check;
+ALTER TABLE kitsune.collections
+  ADD CONSTRAINT collections_personal_owner_check
+  CHECK (scope <> 'personal' OR owner_principal_id IS NOT NULL);
 CREATE INDEX IF NOT EXISTS collections_workspace_scope_idx
   ON kitsune.collections (workspace_id, scope);
 

@@ -14,11 +14,11 @@
 | Data model | Soft properties + blocks | Relational collections + field grants + change sets | Kitsune stronger for agents/DB |
 | AuthZ | Page ACL + workspace | Collection grants + teams; weak page ACL | **Gap** |
 | Multi-workspace | First-class switcher | Memberships in DB; no switcher UX | **Gap** |
-| Agents | Integrations / AI | MCP + agents API; sidebar Agents page + Claude-style access labels | **In progress** — profiles exist; first-class sidebar + unified access |
+| Agents | Integrations / AI | MCP + agents API; sidebar Agents page + Claude-style access labels | **Shipped** — profiles + unified access |
 | API | Notion Public API | REST + MCP + read GraphQL | Strong; need OAuth apps |
 | Editor | Blocks WYSIWYG | Prose textarea | **Gap** |
-| Graph | Limited | Relation neighbors API + `/graph` MVP | **In progress** — force-directed interactive |
-| Views | Board/list/gallery/calendar/table | Table shipped; multi-view tabs planned | **In progress** — Table always; others addable |
+| Graph | Limited | Relation neighbors API + `/graph` MVP | **Shipped** — force-directed interactive |
+| Views | Board/list/gallery/calendar/table | Table shipped; multi-view tabs | **Shipped** — Table always; others addable |
 | Memory | AI connectors | Grant-aware `search` | Need Supermemory-shaped tools |
 
 Kitsune should **not** abandon change sets / field grants. Extend them with Notion-class sharing, editor, multi-ws, agents, OAuth, graph, and memory tools.

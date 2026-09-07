@@ -119,12 +119,17 @@ export function CreateDatabaseDialog({
             />
           </div>
           <div className="space-y-1.5">
-            <Label>Scope</Label>
-            <div className="flex gap-2">
+            <Label id="create-db-scope-label">Scope</Label>
+            <div
+              className="flex gap-2"
+              role="group"
+              aria-labelledby="create-db-scope-label"
+            >
               <Button
                 type="button"
                 size="sm"
                 variant={scope === 'workspace' ? 'default' : 'outline'}
+                aria-pressed={scope === 'workspace'}
                 onClick={() => setScope('workspace')}
               >
                 Workspace
@@ -133,6 +138,7 @@ export function CreateDatabaseDialog({
                 type="button"
                 size="sm"
                 variant={scope === 'personal' ? 'default' : 'outline'}
+                aria-pressed={scope === 'personal'}
                 onClick={() => setScope('personal')}
               >
                 Personal

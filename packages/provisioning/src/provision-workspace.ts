@@ -183,7 +183,7 @@ export async function createAdditionalWorkspaceForUser(
   if (activate) {
     await engine.ownerPool.query(
       `UPDATE kitsune.users
-          SET workspace_id = $2, principal_id = $3
+          SET workspace_id = $2, principal_id = $3, pending_api_key = NULL
         WHERE id = $1`,
       [input.userId, workspaceId, principalId],
     );

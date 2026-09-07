@@ -56,5 +56,34 @@ describe('Signup provisioning', () => {
     const schemaB = await engine.describeSchema(b.workspaceId, b.principalId);
     expect(schemaA.collections).toEqual([]);
     expect(schemaB.collections).toEqual([]);
+
+    const collectionId = await engine.defineCollection(a.workspaceId, {
+      name: 'isolation_probe',
+      fields: [{ name: 'title', type: 'text' }],
+    });
+    await engine.createGrant(
+      a.workspaceId,
+      a.principalId,
+      collectionId,
+      'admin',
+      null,
+      null,
+      { actorId: a.principalId },
+    );
+    const recordId = await engine.directWrite(
+      a.workspaceId,
+      a.principalId,
+      'isolation_probe',
+      { title: 'private to A' },
+    );
+
+    expect(
+      await engine.readRecord(
+        a.workspaceId,
+        b.principalId,
+        'isolation_probe',
+        recordId,
+      ),
+    ).toBeNull();
   });
 });

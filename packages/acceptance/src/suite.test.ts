@@ -1081,15 +1081,28 @@ describe('KitsuneOS Acceptance Suite', () => {
     );
 
     const audit = await engine.ownerPool.query(
-      `SELECT action FROM kitsune.audit_log
-        WHERE action = 'grant.agent_write' AND principal_id = $1`,
-      [fixture.adminId],
+      `SELECT action, detail FROM kitsune.audit_log
+        WHERE action = 'grant.agent_write'
+          AND principal_id = $1
+          AND detail->>'targetPrincipalId' = $2
+          AND detail->>'capability' = 'write'`,
+      [fixture.adminId, tempAgent],
     );
-    expect(audit.rows.length).toBeGreaterThan(0);
+    expect(audit.rows.length).toBe(1);
 
-    await engine.directWrite(fixture.workspaceId, tempAgent, 'accounts', {
-      name: 'Agent Wrote This',
-    });
+    const recordId = await engine.directWrite(
+      fixture.workspaceId,
+      tempAgent,
+      'accounts',
+      { name: 'Agent Wrote This' },
+    );
+    const written = await engine.readRecord(
+      fixture.workspaceId,
+      tempAgent,
+      'accounts',
+      recordId,
+    );
+    expect(written?.name).toBe('Agent Wrote This');
   });
 
   it('21. Authorization matrix: every query shape runs as every principal class with exact result sets', async () => {

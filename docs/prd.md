@@ -223,15 +223,15 @@ Every read, write, denied attempt, grant change, and schema change, by principal
 The hosted console is a human workspace, not a set of developer tool pages. Sidebar: **Workspace** then **Personal** databases; footer **Changes**, **Agents**, **Graph**; thinner **Settings**. Opening a database shows view tabs (Table always; board/list/gallery/calendar addable). Opening a row lands on a full **page** (`/p/[pageId]`). **Changes** is the **change-request** (PR) surface and supports proposals that touch multiple pages across databases. Settings keeps account, people/teams membership, billing, webhooks; access and agent CRUD move toward Agents / Share. Database properties edit on the open database. CLI: `init`, `schema push`, `schema diff`, `query`, `changesets`, `export`. Query, audit, and history remain engine/API surfaces even when they are not top-level nav. Direction: `docs/superpowers/specs/2026-09-05-pages-and-change-requests-design.md`.
 
 - [x] Collection table views (`/c/[collection]`) with column visibility and local search
-- [ ] Multi-view tabs: Table always present; Board / List / Gallery / Calendar addable (none besides Table by default)
+- [x] Multi-view tabs: Table always present; Board / List / Gallery / Calendar addable (none besides Table by default)
 - [x] Record peek: create (`directWrite`) and update (auto-applied change set for `write`/`admin`) *(peek remains as New page / optional quick path; full page is primary)*
 - [x] Full page route `/p/[pageId]` as primary open surface (title, body, properties)
 - [x] Changes lists open change sets; detail shows field-level diffs, partial approve/reject, apply *(nav rename Inbox→Changes; PR shell polish in progress)*
 - [x] Changes detail groups diffs by page for multi-page / multi-collection change requests
-- [ ] Agents page (workspace / team / personal) with profiles and unified access UI
+- [x] Agents page (workspace / team / personal) with profiles and unified access UI
 - [x] Settings: Account, People, Teams, Access, Connect AI *(thinning; Agents/access move in-context)*
 - [x] Database properties editor on `/c/[collection]` (create database from sidebar/home)
-- [ ] Empty provision + interactive onboarding (no auto-seeded CRM databases)
+- [x] Empty provision + interactive onboarding (no auto-seeded CRM databases)
 - [x] `export` produces the full workspace as portable data plus schema (grant-filtered for non-admins)
 
 Do not claim Playwright coverage. Engine-backed `console.test.ts` still covers schema mask, audit not-found, and partial review apply.
