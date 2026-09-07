@@ -36,11 +36,11 @@
 | 10 | Remote MCP Streamable HTTP honesty | Partial (prior work) |
 | 11 | OAuth authorization-code UI | Deferred (client_credentials MVP exists) |
 | 12 | Backlinks chrome on page | **Shipped** |
-| 13 | Empty provision (no default DBs) + interactive onboarding | **In progress** |
-| 14 | Multi-view tabs (Table always; Board/List/Gallery/Calendar addable) | **In progress** |
-| 15 | Changes PR UI (Inbox→Changes) | **In progress** |
-| 16 | Agents sidebar + Claude-style access labels | **In progress** |
-| 17 | Force-directed interactive graph | **In progress** |
+| 13 | Empty provision (no default DBs) + interactive onboarding | **Shipped** |
+| 14 | Multi-view tabs (Table always; Board/List/Gallery/Calendar addable) | **Shipped** |
+| 15 | Changes PR UI (Inbox→Changes) | **Shipped** |
+| 16 | Agents sidebar + Claude-style access labels | **Shipped** |
+| 17 | Force-directed interactive graph | **Shipped** |
 
 ---
 
