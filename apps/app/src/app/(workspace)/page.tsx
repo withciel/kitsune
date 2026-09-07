@@ -49,8 +49,7 @@ export default function WorkspaceHomePage() {
           const meBody = (await meRes.json()) as { role?: string };
           setBoot({
             kind: 'empty',
-            memberOnly:
-              meBody.role === 'member' || meBody.role === 'viewer',
+            memberOnly: meBody.role === 'member' || meBody.role === 'viewer',
           });
         } catch {
           setBoot({ kind: 'empty', memberOnly: false });

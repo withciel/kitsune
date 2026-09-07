@@ -52,7 +52,9 @@ export function AppSidebar() {
         };
         const next = body.collections ?? [];
         setWorkspaceDbs(
-          next.filter((collection) => (collection.scope ?? 'workspace') !== 'personal'),
+          next.filter(
+            (collection) => (collection.scope ?? 'workspace') !== 'personal',
+          ),
         );
         setPersonalDbs(
           next.filter((collection) => collection.scope === 'personal'),
@@ -109,7 +111,11 @@ export function AppSidebar() {
       const Icon = collection.name === 'notes' ? StickyNote : Table2;
       return (
         <SidebarMenuItem key={collection.name}>
-          <SidebarMenuButton asChild isActive={active} tooltip={collection.name}>
+          <SidebarMenuButton
+            asChild
+            isActive={active}
+            tooltip={collection.name}
+          >
             <Link href={href}>
               <Icon />
               <span>{collection.name}</span>

@@ -10,7 +10,7 @@ import { requireWorkspace } from '@/lib/require-workspace';
 export async function GET() {
   try {
     const ctx = await requireWorkspace();
-    const [people, teams] = await Promise.all([
+    const [people, teams, agents] = await Promise.all([
       engine.ownerPool.query<{
         principal_id: string;
         email: string;
@@ -34,6 +34,15 @@ export async function GET() {
           ORDER BY t.name ASC`,
         [ctx.workspaceId],
       ),
+      engine.ownerPool.query<{ id: string; display_name: string }>(
+        `SELECT id, display_name
+           FROM kitsune.principals
+          WHERE workspace_id = $1
+            AND kind = 'agent'
+            AND disabled_at IS NULL
+          ORDER BY display_name ASC`,
+        [ctx.workspaceId],
+      ),
     ]);
 
     return NextResponse.json({
@@ -47,6 +56,11 @@ export async function GET() {
           principalId: row.principal_id,
           label: row.name,
           kind: 'team' as const,
+        })),
+        ...agents.rows.map((row) => ({
+          principalId: row.id,
+          label: row.display_name,
+          kind: 'agent' as const,
         })),
       ],
     });
