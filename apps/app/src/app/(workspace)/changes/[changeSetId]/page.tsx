@@ -72,6 +72,15 @@ export default function ChangeDetailPage() {
     void load().catch(() => setError('Failed to load'));
   }, [load]);
 
+  useShellContext(
+    item
+      ? {
+          title: item.title?.trim() || 'Untitled change request',
+          crumbs: [{ label: 'Changes', href: '/changes' }],
+        }
+      : null,
+  );
+
   const pageGroups = useMemo(
     () => (item ? groupOpsByPage(item.operations) : []),
     [item],
