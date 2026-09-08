@@ -22,7 +22,7 @@ export default function LandingPage() {
             {/* biome-ignore lint/performance/noImgElement: native <video> fallback poster */}
             <img
               src="/kitsune-agents-ad.gif"
-              alt="Agents writing into a shared company workspace — gathered, reviewable, ready"
+              alt="Agents writing into a shared company workspace: gathered, reviewable, ready"
               width={1280}
               height={720}
             />
