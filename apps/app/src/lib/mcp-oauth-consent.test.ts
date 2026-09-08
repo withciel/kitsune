@@ -1,3 +1,5 @@
+// workspace-lint: ignore — Postgres E2E inserts into mcp_oauth_pending use
+// workspace_id columns; workspace is never taken from a client request.
 import assert from 'node:assert/strict';
 import { after, before, describe, it } from 'node:test';
 import { DEFAULT_CONFIG, KitsuneEngine, migrate } from '@kitsuneos/core';
