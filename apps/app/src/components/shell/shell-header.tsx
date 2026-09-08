@@ -5,14 +5,14 @@ import { usePathname } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
 import { Separator } from '@/components/ui/separator';
 import { SidebarTrigger } from '@/components/ui/sidebar';
+import { SETTINGS_TABS } from '@/lib/settings-tabs';
 import {
   SHELL_CONTEXT_EVENT,
   type ShellContextState,
   type ShellCrumb,
 } from '@/lib/shell-context';
-import { SETTINGS_TABS } from '@/lib/settings-tabs';
-import { openCommandPalette } from '@/lib/workspace-events';
 import { cn } from '@/lib/utils';
+import { openCommandPalette } from '@/lib/workspace-events';
 
 function crumbsFromPath(pathname: string): {
   crumbs: ShellCrumb[];
@@ -69,8 +69,7 @@ function crumbsFromPath(pathname: string): {
   }
   if (root === 'settings') {
     const tab = SETTINGS_TABS.find(
-      (item) =>
-        pathname === item.href || pathname.startsWith(`${item.href}/`),
+      (item) => pathname === item.href || pathname.startsWith(`${item.href}/`),
     );
     return {
       crumbs: [{ label: 'Settings', href: '/settings' }],
@@ -90,14 +89,18 @@ export function ShellHeader() {
   const [override, setOverride] = useState<ShellContextState | null>(null);
 
   useEffect(() => {
+    if (!pathname) return;
     setOverride(null);
+  }, [pathname]);
+
+  useEffect(() => {
     function onContext(event: Event) {
       const custom = event as CustomEvent<ShellContextState | null>;
       setOverride(custom.detail);
     }
     window.addEventListener(SHELL_CONTEXT_EVENT, onContext);
     return () => window.removeEventListener(SHELL_CONTEXT_EVENT, onContext);
-  }, [pathname]);
+  }, []);
 
   const title = override?.title?.trim() || fallback.title;
   const crumbs =
@@ -114,8 +117,11 @@ export function ShellHeader() {
         className="operate-enter-fast flex min-w-0 flex-1 items-center gap-1.5 text-sm"
         key={`${pathname}:${title}`}
       >
-        {crumbs.map((crumb, index) => (
-          <span key={`${crumb.label}-${index}`} className="flex min-w-0 items-center gap-1.5">
+        {crumbs.map((crumb) => (
+          <span
+            key={`${crumb.label}:${crumb.href ?? ''}`}
+            className="flex min-w-0 items-center gap-1.5"
+          >
             {crumb.href ? (
               <Link
                 href={crumb.href}

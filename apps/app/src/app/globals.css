@@ -129,11 +129,11 @@
 }
 
 /* Sidebar active: left accent instead of filled block wash */
-[data-slot='sidebar-menu-button'][data-active='true'] {
+[data-slot="sidebar-menu-button"][data-active="true"] {
   position: relative;
 }
-[data-slot='sidebar-menu-button'][data-active='true']::before {
-  content: '';
+[data-slot="sidebar-menu-button"][data-active="true"]::before {
+  content: "";
   position: absolute;
   top: 20%;
   bottom: 20%;

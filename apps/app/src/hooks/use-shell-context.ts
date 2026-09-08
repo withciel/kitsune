@@ -2,9 +2,9 @@
 
 import { useEffect } from 'react';
 import {
-  setShellContext,
   type ShellContextState,
   type ShellCrumb,
+  setShellContext,
 } from '@/lib/shell-context';
 
 /** Publishes contextual title/crumbs to the workspace shell header. */

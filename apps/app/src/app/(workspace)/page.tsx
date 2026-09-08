@@ -42,9 +42,12 @@ export default function WorkspaceHomePage() {
           collections?: Array<{ name: string }>;
         };
         if ((body.collections?.length ?? 0) > 0) {
-          setBoot({ kind: 'redirecting' });
-          router.replace(`/c/${body.collections![0]!.name}`);
-          return;
+          const first = body.collections?.[0]?.name;
+          if (first) {
+            setBoot({ kind: 'redirecting' });
+            router.replace(`/c/${first}`);
+            return;
+          }
         }
         try {
           const meRes = await fetch('/api/me');

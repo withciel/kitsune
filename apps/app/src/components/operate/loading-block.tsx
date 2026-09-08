@@ -9,15 +9,16 @@ export function OperateLoadingBlock({
   rows?: number;
   className?: string;
 }) {
+  const rowCount = Math.max(0, Math.min(rows, 6));
   return (
     <div className={cn('space-y-2 px-6 py-4', className)}>
       <Skeleton className="h-8 w-48" />
-      {Array.from({ length: rows }, (_, index) => (
-        <Skeleton
-          key={index}
-          className={index === 0 ? 'h-10 w-full' : 'h-10 w-full'}
-        />
-      ))}
+      {rowCount >= 1 ? <Skeleton className="h-10 w-full" /> : null}
+      {rowCount >= 2 ? <Skeleton className="h-10 w-full" /> : null}
+      {rowCount >= 3 ? <Skeleton className="h-10 w-full" /> : null}
+      {rowCount >= 4 ? <Skeleton className="h-10 w-full" /> : null}
+      {rowCount >= 5 ? <Skeleton className="h-10 w-full" /> : null}
+      {rowCount >= 6 ? <Skeleton className="h-10 w-full" /> : null}
     </div>
   );
 }

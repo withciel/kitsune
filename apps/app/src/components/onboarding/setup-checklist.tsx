@@ -149,13 +149,14 @@ export function SetupChecklist() {
                     href={href}
                     className={cn(
                       'inline-flex items-center gap-1.5 text-xs transition-colors hover:text-foreground',
-                      done
-                        ? 'text-muted-foreground'
-                        : 'text-foreground',
+                      done ? 'text-muted-foreground' : 'text-foreground',
                     )}
                   >
                     {done ? (
-                      <Check className="size-3 text-primary" aria-hidden="true" />
+                      <Check
+                        className="size-3 text-primary"
+                        aria-hidden="true"
+                      />
                     ) : (
                       <Circle
                         className="size-3 text-muted-foreground"

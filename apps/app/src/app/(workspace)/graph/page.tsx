@@ -55,7 +55,12 @@ export default function GraphPage() {
         description="How pages you can see link together. Drag to rearrange, scroll to zoom, click a node to open its page."
         action={
           <>
-            <Button variant="outline" size="sm" onClick={reload} disabled={loading}>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={reload}
+              disabled={loading}
+            >
               Refresh
             </Button>
             <DropdownMenu>
