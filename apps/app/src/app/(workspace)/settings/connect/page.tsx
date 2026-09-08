@@ -7,6 +7,7 @@ import { AgentsPanel } from '@/components/settings/agents-panel';
 import { OAuthAppsPanel } from '@/components/settings/oauth-apps-panel';
 import { SettingsNav } from '@/components/settings/settings-nav';
 import { SettingsPageHeader } from '@/components/settings/settings-section';
+import { VaultPanel } from '@/components/settings/vault-panel';
 import { Button } from '@/components/ui/button';
 import {
   Select,
@@ -421,6 +422,8 @@ export default function SettingsConnectPage() {
         <AgentsPanel />
 
         <OAuthAppsPanel />
+
+        <VaultPanel />
       </div>
     </div>
   );
