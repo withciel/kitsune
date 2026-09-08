@@ -2674,16 +2674,23 @@ export class KitsuneEngine {
       });
 
       await client.query('COMMIT');
-      await this.maybeAutoApplyChangeSet(
-        workspaceId,
-        authorId,
-        changeSetId,
-        operationIds,
-        input.confidence ?? null,
-      );
+      client.release();
+      try {
+        await this.maybeAutoApplyChangeSet(
+          workspaceId,
+          authorId,
+          changeSetId,
+          operationIds,
+          input.confidence ?? null,
+        );
+      } catch (autoApplyError) {
+        // Proposal already committed; auto-apply failures must not hide success.
+        console.error('maybeAutoApplyChangeSet failed', autoApplyError);
+      }
       return { changeSetId, operationIds };
     } catch (error) {
       await client.query('ROLLBACK');
+      client.release();
       if (error instanceof KitsuneError && error.code === 'forbidden') {
         await writeAudit(this.appPool, {
           workspaceId,
@@ -2695,8 +2702,6 @@ export class KitsuneEngine {
         });
       }
       throw error;
-    } finally {
-      client.release();
     }
   }
 
@@ -2893,6 +2898,12 @@ export class KitsuneEngine {
 
     const client = await this.appPool.connect();
     const conflicts: string[] = [];
+    let clientReleased = false;
+    const releaseApplyClient = () => {
+      if (clientReleased) return;
+      client.release();
+      clientReleased = true;
+    };
     try {
       await client.query('BEGIN');
       await setSessionContext(client, {
@@ -2972,6 +2983,8 @@ export class KitsuneEngine {
             changeSetId,
             'blocked',
           );
+          // Release before writeAudit — it acquires another appPool client.
+          releaseApplyClient();
           await writeAudit(this.appPool, {
             workspaceId,
             principalId: reviewerId,
@@ -3047,6 +3060,9 @@ export class KitsuneEngine {
       if (conflicts.length > 0) {
         await client.query('ROLLBACK');
         await this.persistBlockedChangeSet(changeSetId, conflicts, approvedOps);
+        // Release before writeAudit — nested appPool.connect while holding the
+        // apply client deadlocks when concurrent applies fill the pool (max 20).
+        releaseApplyClient();
         await writeAudit(this.appPool, {
           workspaceId,
           principalId: reviewerId,
@@ -3240,6 +3256,10 @@ export class KitsuneEngine {
       }
 
       await client.query('COMMIT');
+      // Release before post-commit side effects that acquire appPool clients
+      // (reindex / wiki-link sync). Holding the apply client across those calls
+      // deadlocks under concurrent apply when the pool is saturated.
+      releaseApplyClient();
       for (const [key, collectionName] of reindexTargets) {
         const recordId = key.slice(collectionName.length + 1);
         try {
@@ -3289,7 +3309,13 @@ export class KitsuneEngine {
       }
       return { status: 'applied' };
     } catch (error) {
-      await client.query('ROLLBACK');
+      if (!clientReleased) {
+        try {
+          await client.query('ROLLBACK');
+        } catch {
+          // ignore — connection may already be aborted
+        }
+      }
       if (
         error instanceof Error &&
         error.message.startsWith('Fault injection')
@@ -3298,7 +3324,7 @@ export class KitsuneEngine {
       }
       throw error;
     } finally {
-      client.release();
+      releaseApplyClient();
     }
   }
 
