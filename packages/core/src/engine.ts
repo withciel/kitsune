@@ -27,6 +27,7 @@ import {
   orderCollectionsForBranch,
   sanitizeBranchName,
 } from './branching/copy.js';
+import { compilePageAccessPredicate } from './compiler/page-access-sql.js';
 import { compilePredicate } from './compiler/predicate-sql.js';
 import {
   type CollectionMeta,
@@ -74,7 +75,6 @@ import {
   listTeams as listTeamRows,
   removeTeamMember,
 } from './org/memberships.js';
-import { canViewPage } from './org/page-access.js';
 import {
   type SweepRevisionsResult,
   sweepExpiredRevisions,
@@ -1392,7 +1392,6 @@ export class KitsuneEngine {
         compiled.sql,
         compiled.params,
       );
-      const meta = await getCollectionMeta(client, workspaceId, collection);
       await writeAuditInTxn(client, {
         workspaceId,
         principalId,
@@ -1401,14 +1400,9 @@ export class KitsuneEngine {
         outcome: row ? 'allowed' : 'denied',
       });
       await client.query('COMMIT');
-      if (!row) return null;
-      const allowed = await canViewPage(this.ownerPool, {
-        workspaceId,
-        collectionId: meta.id,
-        recordId,
-        principalId,
-      });
-      return allowed ? row : null;
+      // page_access is compiled into compileReadRecord / compileQuery — no
+      // separate canViewPage post-filter (single authorization path).
+      return row;
     } catch (error) {
       await client.query('ROLLBACK');
       if (error instanceof KitsuneError) {
@@ -5213,8 +5207,8 @@ function normalizeOperations(operations: ChangeOpInput[]): NormalizedOp[] {
 
 async function assertRowAccessible(
   client: PoolClient,
-  _workspaceId: string,
-  _principalId: string,
+  workspaceId: string,
+  principalId: string,
   schemaName: string,
   meta: { id: string; tableName: string; fields: string[] },
   grant: ResolvedGrant,
@@ -5224,14 +5218,25 @@ async function assertRowAccessible(
   const table = `${quoteIdent(schemaName)}.${quoteIdent(meta.tableName)}`;
   const whereParts = [`t.${quoteIdent('id')} = $1`];
   const params: unknown[] = [recordId];
+  let paramIdx = 2;
   if (grant.rowPredicate) {
-    const compiled = compilePredicate(grant.rowPredicate, 't', 2);
+    const compiled = compilePredicate(grant.rowPredicate, 't', paramIdx);
     whereParts.push(compiled.sql);
     params.push(...compiled.params);
+    paramIdx += compiled.params.length;
   }
   if (!options?.includeDeleted) {
     whereParts.push('t._deleted_at IS NULL');
   }
+  const pageAcl = await compilePageAccessPredicate(client, {
+    workspaceId,
+    collectionId: meta.id,
+    principalId,
+    rootAlias: 't',
+    paramStart: paramIdx,
+  });
+  whereParts.push(pageAcl.sql);
+  params.push(...pageAcl.params);
   const sql = `SELECT id FROM ${table} t WHERE ${whereParts.join(' AND ')}`;
   const row = await queryOne(client, sql, params);
   if (!row) {
