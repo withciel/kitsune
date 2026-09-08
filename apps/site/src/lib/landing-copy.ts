@@ -43,6 +43,33 @@ export const LANDING = {
   },
 } as const;
 
+export const SITE_METADATA = {
+  defaultTitle: 'KitsuneOS | The application database humans and agents share',
+  defaultDescription:
+    'Field-level grants, propose/review change sets, and a console where operators and agents work the same workspace, without a second system of record.',
+  titleTemplate: '%s | KitsuneOS',
+  ogImageAlt: 'KitsuneOS: shared workspace for humans and agents',
+} as const;
+
+export const SITE_CHROME_STRINGS = [
+  'KitsuneOS',
+  'Why',
+  'How it works',
+  'Sign in',
+  'Start free',
+  'Built by',
+  'The data layer under their own work.',
+  'Terms',
+  'Privacy',
+  'Refunds',
+  'support@kitsuneos.com',
+  SITE_METADATA.defaultTitle,
+  SITE_METADATA.defaultDescription,
+  SITE_METADATA.titleTemplate,
+  SITE_METADATA.ogImageAlt,
+  'Page not found | KitsuneOS',
+] as const;
+
 export function visibleLandingStrings(): string[] {
   const out: string[] = [
     LANDING.ctaPrimary,
