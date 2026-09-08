@@ -66,11 +66,22 @@ export async function listRelatedRecords(
     throw new KitsuneError('Not found', 'not_found');
   }
 
+  // Root page ACL: a collection grant alone must not reveal neighbors of a
+  // private root the principal cannot view (not-found, never forbidden).
+  const rootPageAcl = await compilePageAccessPredicate(client, {
+    workspaceId,
+    collectionId: rootMeta.id,
+    principalId,
+    rootAlias: 'r',
+    paramStart: 2,
+  });
+
   const rootRows = await queryRows<{ id: string }>(
     client,
-    `SELECT id FROM ${quoteIdent(schemaName)}.${quoteIdent(rootMeta.tableName)}
-     WHERE id = $1 AND _deleted_at IS NULL`,
-    [recordId],
+    `SELECT id FROM ${quoteIdent(schemaName)}.${quoteIdent(rootMeta.tableName)} r
+     WHERE r.id = $1 AND r._deleted_at IS NULL
+       AND ${rootPageAcl.sql}`,
+    [recordId, ...rootPageAcl.params],
   );
   if (rootRows.length === 0) {
     throw new KitsuneError('Not found', 'not_found');

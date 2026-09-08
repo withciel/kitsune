@@ -1499,10 +1499,9 @@ export class KitsuneEngine {
         detail: { collection },
       });
       await client.query('COMMIT');
-      // page_access is compiled directly into listRelatedRecords' neighbor
-      // SQL (see compilePageAccessPredicate in search/related.ts), so
-      // private neighbor rows are never selected and no post-filter is
-      // needed here.
+      // page_access is compiled into listRelatedRecords for the root record
+      // and every neighbor row (see search/related.ts), so private pages are
+      // never selected and no post-filter is needed here.
       return result;
     } catch (error) {
       await client.query('ROLLBACK');

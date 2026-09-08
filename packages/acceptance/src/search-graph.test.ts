@@ -252,10 +252,50 @@ describe('semantic search + reference graph (R9)', () => {
       otherAccountId,
     );
     expect(
-      fromOtherAccountAsAdmin.incoming.some(
-        (n) => n.recordId === privateOppId,
-      ),
+      fromOtherAccountAsAdmin.incoming.some((n) => n.recordId === privateOppId),
     ).toBe(true);
+  });
+
+  it('listRelated returns not-found for a private root the principal cannot view', async () => {
+    // Collection grant alone must not leak neighbors of a private root.
+    const fresh = await createStandardFixture(engine);
+    const accountId = await seedAccount(engine, fresh, {
+      name: 'Hidden Root Co',
+      industry: 'defense',
+    });
+    await seedOpportunity(engine, fresh, {
+      account_id: accountId,
+      name: 'Public Pipeline Off Hidden Root',
+      amount: 3,
+      stage: 'prospecting',
+      next_step: 'Should not be listable via private root',
+    });
+    await upsertPageVisibility(engine.ownerPool, {
+      workspaceId: fresh.workspaceId,
+      collectionId: fresh.collections.accounts,
+      recordId: accountId,
+      visibility: 'private',
+      ownerPrincipalId: fresh.adminId,
+      actorPrincipalId: fresh.adminId,
+    });
+
+    await expect(
+      engine.listRelated(
+        fresh.workspaceId,
+        fresh.reviewerId,
+        'accounts',
+        accountId,
+      ),
+    ).rejects.toMatchObject({ message: 'Not found', code: 'not_found' });
+
+    // Owner still walks the private root and sees public neighbors.
+    const asAdmin = await engine.listRelated(
+      fresh.workspaceId,
+      fresh.adminId,
+      'accounts',
+      accountId,
+    );
+    expect(asAdmin.incoming.length).toBeGreaterThan(0);
   });
 
   it('MCP search and read_related tools honor grants', async () => {

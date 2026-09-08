@@ -8,10 +8,10 @@ import { requireWorkspace } from '@/lib/require-workspace';
  * Graph distribution API — nodes/edges for linked-page views and exporters.
  *
  * Visibility: engine.query / engine.readRecord / engine.listRelated compile
- * page_access directly into their SQL (compilePageAccessPredicate), so
- * private rows are never selected in the first place. The isVisible /
- * filterVisibleRecordIds calls below remain only as the authorization gate
- * for engine.listWikiLinkEdges, whose edges are not yet compiler-scoped.
+ * page_access directly into their SQL (compilePageAccessPredicate), including
+ * the listRelated root record. The isVisible / filterVisibleRecordIds calls
+ * below remain only as the authorization gate for engine.listWikiLinkEdges,
+ * whose edges are not yet compiler-scoped.
  */
 export async function GET(request: Request) {
   try {
