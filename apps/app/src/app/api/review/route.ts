@@ -72,10 +72,7 @@ export async function POST(request: Request) {
 
     if (body.apply === true) {
       if (
-        await engine.changeSetHasProposedOps(
-          ctx.workspaceId,
-          body.changeSetId,
-        )
+        await engine.changeSetHasProposedOps(ctx.workspaceId, body.changeSetId)
       ) {
         return NextResponse.json(
           {

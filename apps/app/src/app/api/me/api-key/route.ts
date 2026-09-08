@@ -15,7 +15,8 @@ async function resolveAssistantPrincipal(
 ): Promise<string> {
   const existing = await engine.findAssistantPrincipalId(workspaceId);
   const assistantId =
-    existing ?? (await engine.createPrincipal(workspaceId, 'agent', 'assistant'));
+    existing ??
+    (await engine.createPrincipal(workspaceId, 'agent', 'assistant'));
 
   const collectionIds = await engine.listCollectionIds(workspaceId);
   for (const collectionId of collectionIds) {

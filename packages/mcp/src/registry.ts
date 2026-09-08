@@ -9,12 +9,10 @@ export interface McpToolRegistryEntry {
   handlerKey: keyof McpHandlers;
 }
 
-type AssertHandlersCoverTools = Exclude<
-  McpToolName,
-  keyof McpHandlers
-> extends never
-  ? true
-  : Exclude<McpToolName, keyof McpHandlers>;
+type AssertHandlersCoverTools =
+  Exclude<McpToolName, keyof McpHandlers> extends never
+    ? true
+    : Exclude<McpToolName, keyof McpHandlers>;
 
 const _handlersCoverTools: AssertHandlersCoverTools = true;
 void _handlersCoverTools;
@@ -37,7 +35,9 @@ export const MCP_TOOL_REGISTRY: Record<McpToolName, McpToolRegistryEntry> =
 
 /** Tool definitions for ListTools — same order as schemas, via the registry. */
 export const REGISTRY_TOOL_DEFINITIONS: readonly McpToolDefinition[] =
-  TOOL_DEFINITIONS.map((definition) => MCP_TOOL_REGISTRY[definition.name].definition);
+  TOOL_DEFINITIONS.map(
+    (definition) => MCP_TOOL_REGISTRY[definition.name].definition,
+  );
 
 export function getMcpToolEntry(
   toolName: string,

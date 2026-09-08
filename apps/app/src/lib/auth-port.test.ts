@@ -3,10 +3,10 @@ import { describe, it } from 'node:test';
 import type { WorkspaceMembership } from '@kitsuneos/core';
 import { KitsuneError } from '@kitsuneos/core';
 import {
+  type AuthPort,
   getAuthPort,
   resetAuthPort,
   setAuthPort,
-  type AuthPort,
 } from './auth-port.ts';
 import { pickMembership } from './pick-membership.ts';
 
@@ -71,8 +71,7 @@ describe('pickMembership', () => {
   it('throws when there are no memberships', () => {
     assert.throws(
       () => pickMembership([], null),
-      (err: unknown) =>
-        err instanceof KitsuneError && err.code === 'forbidden',
+      (err: unknown) => err instanceof KitsuneError && err.code === 'forbidden',
     );
   });
 

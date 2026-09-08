@@ -10,6 +10,13 @@ import type {
   PutAttachmentInput,
 } from './attachments/types.js';
 import { writeAudit, writeAuditInTxn } from './audit/log.js';
+import type { ResolvedApiKey } from './auth/api-keys.js';
+import {
+  createApiKey as createApiKeyRow,
+  resolveApiKey as resolveApiKeyRow,
+  revokeApiKey as revokeApiKeyRow,
+  revokeApiKeysForPrincipal as revokeApiKeysForPrincipalRow,
+} from './auth/api-keys.js';
 import {
   type AutoApplyPolicyConfig,
   assertAutoApplyConfig,
@@ -22,9 +29,9 @@ import {
 import { assertWriteEntitlement } from './billing/entitlement.js';
 import {
   assertPlanLimit,
+  loadPlanUsage,
   type PlanLimitDimension,
   type PlanUsageSnapshot,
-  loadPlanUsage,
 } from './billing/plan-limits.js';
 import {
   findWorkspaceByDodoCustomer,
@@ -35,13 +42,6 @@ import {
   type SubscriptionWebhookResult,
   upsertSubscription,
 } from './billing/store.js';
-import type { ResolvedApiKey } from './auth/api-keys.js';
-import {
-  createApiKey as createApiKeyRow,
-  resolveApiKey as resolveApiKeyRow,
-  revokeApiKey as revokeApiKeyRow,
-  revokeApiKeysForPrincipal as revokeApiKeysForPrincipalRow,
-} from './auth/api-keys.js';
 import {
   type BranchFieldMeta,
   copyRelationTable,
@@ -49,9 +49,9 @@ import {
   sanitizeBranchName,
 } from './branching/copy.js';
 import {
-  changeSetHasProposedOps,
   type ChangeSetListScope,
   type ChangeSetSummary,
+  changeSetHasProposedOps,
   listChangeSetOpIds,
   listChangeSetSummaries,
 } from './changeset/summaries.js';
@@ -106,10 +106,7 @@ import {
   removeTeamMember,
   switchActiveWorkspace as switchActiveWorkspaceRow,
 } from './org/memberships.js';
-import type {
-  OAuthAppSummary,
-  OAuthScope,
-} from './org/oauth-apps.js';
+import type { OAuthAppSummary, OAuthScope } from './org/oauth-apps.js';
 import {
   createOAuthApp as createOAuthAppRow,
   issueOAuthClientCredentialsToken as issueOAuthClientCredentialsTokenRow,
@@ -5455,10 +5452,7 @@ export class KitsuneEngine {
    * Hold a Postgres advisory lock for the duration of `fn`.
    * Used by provisioning to serialize first-login workspace creation.
    */
-  async withAdvisoryLock<T>(
-    lockKey: string,
-    fn: () => Promise<T>,
-  ): Promise<T> {
+  async withAdvisoryLock<T>(lockKey: string, fn: () => Promise<T>): Promise<T> {
     const client = await this.ownerPool.connect();
     try {
       await client.query(`SELECT pg_advisory_lock(hashtext($1))`, [lockKey]);
@@ -5605,9 +5599,9 @@ export class KitsuneEngine {
     return result.rows.map((row) => row.id);
   }
 
-  async listWorkspacePrincipals(workspaceId: string): Promise<
-    Array<{ id: string; display_name: string; kind: string }>
-  > {
+  async listWorkspacePrincipals(
+    workspaceId: string,
+  ): Promise<Array<{ id: string; display_name: string; kind: string }>> {
     const result = await this.ownerPool.query<{
       id: string;
       display_name: string;
@@ -5794,9 +5788,7 @@ export class KitsuneEngine {
       }));
   }
 
-  async findAssistantPrincipalId(
-    workspaceId: string,
-  ): Promise<string | null> {
+  async findAssistantPrincipalId(workspaceId: string): Promise<string | null> {
     const result = await this.ownerPool.query<{ id: string }>(
       `SELECT id FROM kitsune.principals
         WHERE workspace_id = $1

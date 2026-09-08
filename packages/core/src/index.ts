@@ -58,6 +58,11 @@ export {
   recordUsageEvent,
   upsertSubscription,
 } from './billing/store.js';
+export type {
+  ChangeSetListScope,
+  ChangeSetOperationSummary,
+  ChangeSetSummary,
+} from './changeset/summaries.js';
 export { migrate } from './cli/migrate.js';
 export { compilePredicate } from './compiler/predicate-sql.js';
 export {
@@ -73,11 +78,6 @@ export {
 } from './ddl/generator.js';
 export type { ApplyFaultInjection, EngineOptions } from './engine.js';
 export { DEFAULT_CONFIG, KitsuneEngine } from './engine.js';
-export type {
-  ChangeSetListScope,
-  ChangeSetOperationSummary,
-  ChangeSetSummary,
-} from './changeset/summaries.js';
 export {
   assertFieldAllowed,
   loadResolvedGrant,

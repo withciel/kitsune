@@ -58,24 +58,7 @@ export async function listChangeSetSummaries(
   input: ListChangeSetSummariesInput,
 ): Promise<ChangeSetSummary[]> {
   const scope = input.scope ?? (input.changeSetId ? 'all' : 'open');
-  const params: unknown[] = [input.workspaceId];
-  let statusClause = `cs.status = 'open'`;
-  if (input.changeSetId) {
-    params.push(input.changeSetId);
-    statusClause = `cs.id = $${params.length}`;
-  } else if (scope === 'all') {
-    statusClause = '1=1';
-  } else if (scope === 'closed') {
-    params.push(CLOSED_STATUSES);
-    statusClause = `cs.status = ANY($${params.length})`;
-  }
-
-  let authorClause = '';
-  if (input.authorId) {
-    params.push(input.authorId);
-    authorClause = `AND cs.author_id = $${params.length}`;
-  }
-
+  // Fixed SQL only — filters are parameters, never string-interpolated clauses.
   const changeSets = await ownerPool.query<{
     id: string;
     title: string | null;
@@ -94,9 +77,23 @@ export async function listChangeSetSummaries(
             cs.conflicted_fields, cs.author_id, p.display_name AS author
        FROM kitsune.change_sets cs
        JOIN kitsune.principals p ON p.id = cs.author_id
-      WHERE cs.workspace_id = $1 AND ${statusClause} ${authorClause}
+      WHERE cs.workspace_id = $1
+        AND ($2::uuid IS NULL OR cs.id = $2)
+        AND (
+          $2::uuid IS NOT NULL
+          OR $3::text = 'all'
+          OR ($3 = 'open' AND cs.status = 'open')
+          OR ($3 = 'closed' AND cs.status = ANY($4::text[]))
+        )
+        AND ($5::uuid IS NULL OR cs.author_id = $5)
       ORDER BY cs.created_at DESC`,
-    params,
+    [
+      input.workspaceId,
+      input.changeSetId ?? null,
+      scope,
+      CLOSED_STATUSES,
+      input.authorId ?? null,
+    ],
   );
 
   const summaries: ChangeSetSummary[] = [];
@@ -130,7 +127,11 @@ export async function listChangeSetSummaries(
         o.record_id &&
         o.field_name
       ) {
-        before = await input.readBefore(o.collection, o.record_id, o.field_name);
+        before = await input.readBefore(
+          o.collection,
+          o.record_id,
+          o.field_name,
+        );
       }
       operations.push({
         id: o.id,

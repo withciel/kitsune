@@ -342,7 +342,10 @@ export type McpHandlers = ReturnType<typeof createMcpHandlers>;
 /** Widen handlers to a name → fn map for registry dispatch. */
 export function mcpHandlersDispatch(
   handlers: McpHandlers,
-): Record<keyof McpHandlers, (args: Record<string, unknown>) => Promise<unknown>> {
+): Record<
+  keyof McpHandlers,
+  (args: Record<string, unknown>) => Promise<unknown>
+> {
   return handlers as unknown as Record<
     keyof McpHandlers,
     (args: Record<string, unknown>) => Promise<unknown>

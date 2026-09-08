@@ -138,9 +138,7 @@ export async function review(args: string[]): Promise<void> {
       console.log('\nSee the attributed revision with:');
       const touched = changeSet.operations.find((o) => o.recordId);
       if (touched) {
-        console.log(
-          `  pnpm history ${touched.collection} ${touched.recordId}`,
-        );
+        console.log(`  pnpm history ${touched.collection} ${touched.recordId}`);
       }
     } else if (result.status === 'blocked') {
       console.log(
