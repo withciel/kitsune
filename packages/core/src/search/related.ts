@@ -1,4 +1,5 @@
 import type { PoolClient } from 'pg';
+import { compilePageAccessPredicate } from '../compiler/page-access-sql.js';
 import { type CollectionMeta, getCollectionMeta } from '../compiler/query.js';
 import { queryRows } from '../db/pool.js';
 import { assertFieldAllowed, loadResolvedGrant } from '../grants/resolve.js';
@@ -107,14 +108,25 @@ export async function listRelatedRecords(
       ...labels.map((c) => `t.${quoteIdent(c)} AS ${quoteIdent(c)}`),
     ].join(', ');
 
+    // Compile page_access into the neighbor join so private target rows
+    // (including their label field) are never selected — no post-filter.
+    const targetPageAcl = await compilePageAccessPredicate(client, {
+      workspaceId,
+      collectionId: targetMeta.id,
+      principalId,
+      rootAlias: 't',
+      paramStart: 2,
+    });
+
     const fkRows = await queryRows<Record<string, unknown>>(
       client,
       `SELECT ${selectCols}
          FROM ${quoteIdent(schemaName)}.${quoteIdent(rootMeta.tableName)} r
          INNER JOIN ${quoteIdent(schemaName)}.${quoteIdent(targetMeta.tableName)} t
            ON t.id = r.${quoteIdent(field.name)}
-        WHERE r.id = $1 AND r._deleted_at IS NULL AND t._deleted_at IS NULL`,
-      [recordId],
+        WHERE r.id = $1 AND r._deleted_at IS NULL AND t._deleted_at IS NULL
+          AND ${targetPageAcl.sql}`,
+      [recordId, ...targetPageAcl.params],
     );
     for (const row of fkRows) {
       outgoing.push({
@@ -164,17 +176,28 @@ export async function listRelatedRecords(
         otherMeta.fieldMeta.map((f) => f.name),
       );
       const selectCols = [
-        'id::text AS id',
-        ...labels.map((c) => `${quoteIdent(c)} AS ${quoteIdent(c)}`),
+        'n.id::text AS id',
+        ...labels.map((c) => `n.${quoteIdent(c)} AS ${quoteIdent(c)}`),
       ].join(', ');
+
+      // Compile page_access for the referencing row so a private page never
+      // surfaces as an incoming edge — no post-filter.
+      const otherPageAcl = await compilePageAccessPredicate(client, {
+        workspaceId,
+        collectionId: otherMeta.id,
+        principalId,
+        rootAlias: 'n',
+        paramStart: 2,
+      });
 
       const rows = await queryRows<Record<string, unknown>>(
         client,
         `SELECT ${selectCols}
-           FROM ${quoteIdent(schemaName)}.${quoteIdent(otherMeta.tableName)}
-          WHERE ${quoteIdent(field.name)} = $1 AND _deleted_at IS NULL
+           FROM ${quoteIdent(schemaName)}.${quoteIdent(otherMeta.tableName)} n
+          WHERE n.${quoteIdent(field.name)} = $1 AND n._deleted_at IS NULL
+            AND ${otherPageAcl.sql}
           LIMIT 100`,
-        [recordId],
+        [recordId, ...otherPageAcl.params],
       );
       for (const row of rows) {
         incoming.push({
