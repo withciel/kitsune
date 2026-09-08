@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
-import { deflateRawSync } from 'node:zlib';
 import { describe, it } from 'node:test';
+import { deflateRawSync } from 'node:zlib';
 import { buildZip, readZip, VAULT_ZIP_LIMITS } from './vault-zip.ts';
 
 describe('vault zip', () => {
@@ -37,10 +37,7 @@ describe('vault zip', () => {
       data: Buffer.from(`note ${i}`, 'utf8'),
     }));
     const zip = buildZip(entries);
-    assert.throws(
-      () => readZip(zip, { maxEntries: 2 }),
-      /too many entries/,
-    );
+    assert.throws(() => readZip(zip, { maxEntries: 2 }), /too many entries/);
   });
 
   it('rejects archives that inflate past the byte budget', () => {
@@ -88,14 +85,7 @@ describe('vault zip', () => {
     eocd.writeUInt32LE(46 + name.length, 12);
     eocd.writeUInt32LE(30 + name.length + compressed.length, 16);
 
-    const zip = Buffer.concat([
-      local,
-      name,
-      compressed,
-      central,
-      name,
-      eocd,
-    ]);
+    const zip = Buffer.concat([local, name, compressed, central, name, eocd]);
 
     assert.throws(
       () => readZip(zip, { maxInflatedBytes: 1024 }),

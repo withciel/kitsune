@@ -96,8 +96,8 @@ export function AppSidebar() {
     scope: 'workspace' | 'personal',
   ) {
     if (schemaLoading) {
-      return Array.from({ length: 3 }, (_, index) => (
-        <SidebarMenuItem key={`schema-skeleton-${scope}-${index}`}>
+      return ['a', 'b', 'c'].map((slot) => (
+        <SidebarMenuItem key={`schema-skeleton-${scope}-${slot}`}>
           <SidebarMenuSkeleton showIcon />
         </SidebarMenuItem>
       ));

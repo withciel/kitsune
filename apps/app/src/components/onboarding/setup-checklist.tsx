@@ -10,8 +10,8 @@ import {
   isOnboardingDismissed,
   loadOnboardingProgress,
   ONBOARDING_STEPS,
-  onboardingStepTitle,
   type OnboardingProgress,
+  onboardingStepTitle,
 } from '@/lib/onboarding';
 import { cn } from '@/lib/utils';
 import { WORKSPACE_CHANGED_EVENT } from '@/lib/workspace-events';

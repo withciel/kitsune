@@ -3,8 +3,8 @@ import { describe, it } from 'node:test';
 import {
   isAgentMcpConnected,
   ONBOARDING_STEPS,
-  onboardingStepTitle,
   type OnboardingProgress,
+  onboardingStepTitle,
 } from './onboarding.ts';
 
 const baseProgress = (): OnboardingProgress => ({
@@ -38,10 +38,7 @@ describe('onboarding connect-agent heuristic', () => {
   });
 
   it('marks connected when remote MCP OAuth traffic was recorded', () => {
-    assert.equal(
-      isAgentMcpConnected({ agents: [], mcpUsed: true }),
-      true,
-    );
+    assert.equal(isAgentMcpConnected({ agents: [], mcpUsed: true }), true);
   });
 });
 
@@ -51,7 +48,10 @@ describe('onboardingStepTitle', () => {
 
   it('labels create before any agent exists', () => {
     const progress = baseProgress();
-    assert.equal(onboardingStepTitle(connectStep!, progress), 'Create an agent');
+    assert.equal(
+      onboardingStepTitle(connectStep!, progress),
+      'Create an agent',
+    );
   });
 
   it('labels connect MCP when agent exists but is unused', () => {

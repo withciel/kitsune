@@ -144,10 +144,7 @@ export function readZip(
     const localHeaderOffset = buffer.readUInt32LE(ptr + 42);
     const name = buffer.toString('utf8', ptr + 46, ptr + 46 + nameLen);
 
-    if (
-      localHeaderOffset + 30 > buffer.length ||
-      localHeaderOffset < 0
-    ) {
+    if (localHeaderOffset + 30 > buffer.length || localHeaderOffset < 0) {
       throw new Error('Corrupt zip local file header');
     }
     const localNameLen = buffer.readUInt16LE(localHeaderOffset + 26);
