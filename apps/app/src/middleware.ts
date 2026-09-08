@@ -74,6 +74,6 @@ export const config = {
     // oauth/consent), billing webhooks, and RFC 8414/9728 discovery.
     // Authorize and consent are intentionally NOT skipped — withAuth
     // requires AuthKit middleware to have run on those paths.
-    '/((?!_next/static|_next/image|favicon.ico|health|api/mcp(?!/oauth/(authorize|consent))|api/billing/webhook|\\.well-known).*)',
+    '/((?!_next/static|_next/image|favicon.ico|health|api/mcp(?!/oauth/(?:authorize|consent))|api/billing/webhook|\\.well-known).*)',
   ],
 };
