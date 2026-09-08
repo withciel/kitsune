@@ -128,6 +128,24 @@ export function pendingConsentTtlSeconds(): number {
   return PENDING_CONSENT_TTL_SECONDS;
 }
 
+/**
+ * Single-use CSRF token bound to one pending consent row. Random 32+ bytes,
+ * plaintext-in-DB is acceptable because it is scoped to a short-lived,
+ * single-use row (same trust model as the auth code itself).
+ */
+export function newCsrfToken(): string {
+  return randomBytes(32).toString('base64url');
+}
+
+/** Constant-time comparison so token checks don't leak timing info. */
+export function csrfTokensMatch(provided: string, expected: string): boolean {
+  if (!provided || !expected) return false;
+  const a = Buffer.from(provided);
+  const b = Buffer.from(expected);
+  if (a.length !== b.length) return false;
+  return timingSafeEqual(a, b);
+}
+
 export function newClientSecret(): string {
   return randomBytes(32).toString('base64url');
 }
@@ -174,8 +192,11 @@ export async function ensureMcpOAuthTables(
       code_challenge_method text NOT NULL,
       scope text NOT NULL DEFAULT 'mcp:tools',
       state text NOT NULL DEFAULT '',
+      csrf_token text NOT NULL DEFAULT '',
       expires_at timestamptz NOT NULL,
       created_at timestamptz NOT NULL DEFAULT now()
     );
+    ALTER TABLE kitsune.mcp_oauth_pending
+      ADD COLUMN IF NOT EXISTS csrf_token text NOT NULL DEFAULT '';
   `);
 }

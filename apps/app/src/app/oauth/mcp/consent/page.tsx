@@ -14,6 +14,7 @@ interface PendingRow {
   workspace_id: string;
   principal_id: string;
   scope: string;
+  csrf_token: string;
   expires_at: string;
 }
 
@@ -42,7 +43,7 @@ export default async function McpConsentPage({
   await ensureMcpOAuthTables(engine);
 
   const pendingResult = await engine.ownerPool.query<PendingRow>(
-    `SELECT id, client_id, workspace_id, principal_id, scope, expires_at
+    `SELECT id, client_id, workspace_id, principal_id, scope, csrf_token, expires_at
        FROM kitsune.mcp_oauth_pending WHERE id = $1`,
     [pendingId],
   );
@@ -126,6 +127,7 @@ export default async function McpConsentPage({
           className="flex gap-2"
         >
           <input type="hidden" name="pendingId" value={pending.id} />
+          <input type="hidden" name="csrfToken" value={pending.csrf_token} />
           <Button
             type="submit"
             name="decision"
