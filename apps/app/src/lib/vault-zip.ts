@@ -7,10 +7,18 @@
  * still import correctly.
  */
 import { crc32, inflateRawSync } from 'node:zlib';
+import { VAULT_ZIP_LIMITS } from './vault-zip-limits';
 
 export interface ZipEntry {
   name: string;
   data: Buffer;
+}
+
+export { VAULT_ZIP_LIMITS } from './vault-zip-limits';
+
+export interface ZipReadLimits {
+  maxEntries?: number;
+  maxInflatedBytes?: number;
 }
 
 const LOCAL_FILE_HEADER_SIG = 0x04034b50;
@@ -96,41 +104,94 @@ export function buildZip(entries: ZipEntry[]): Buffer {
 }
 
 /** Read a zip archive, decompressing STORED and DEFLATE entries. */
-export function readZip(buffer: Buffer): ZipEntry[] {
+export function readZip(
+  buffer: Buffer,
+  limits: ZipReadLimits = {},
+): ZipEntry[] {
+  const maxEntries = limits.maxEntries ?? VAULT_ZIP_LIMITS.maxEntries;
+  const maxInflatedBytes =
+    limits.maxInflatedBytes ?? VAULT_ZIP_LIMITS.maxInflatedBytes;
+
   const eocdIdx = buffer.lastIndexOf(EOCD_SIG_BYTES);
   if (eocdIdx === -1) {
     throw new Error('Not a valid zip file (missing end of central directory)');
   }
   const totalEntries = buffer.readUInt16LE(eocdIdx + 10);
+  if (totalEntries > maxEntries) {
+    throw new Error(
+      `Zip has too many entries (max ${maxEntries}; prefer the CLI for large vaults)`,
+    );
+  }
   const centralDirOffset = buffer.readUInt32LE(eocdIdx + 16);
 
   const entries: ZipEntry[] = [];
+  let totalInflated = 0;
   let ptr = centralDirOffset;
   for (let i = 0; i < totalEntries; i++) {
+    if (ptr + 46 > buffer.length) {
+      throw new Error('Corrupt zip central directory');
+    }
     const sig = buffer.readUInt32LE(ptr);
     if (sig !== CENTRAL_DIR_SIG) {
       throw new Error('Corrupt zip central directory');
     }
     const method = buffer.readUInt16LE(ptr + 10);
     const compSize = buffer.readUInt32LE(ptr + 20);
+    const declaredUncompSize = buffer.readUInt32LE(ptr + 24);
     const nameLen = buffer.readUInt16LE(ptr + 28);
     const extraLen = buffer.readUInt16LE(ptr + 30);
     const commentLen = buffer.readUInt16LE(ptr + 32);
     const localHeaderOffset = buffer.readUInt32LE(ptr + 42);
     const name = buffer.toString('utf8', ptr + 46, ptr + 46 + nameLen);
 
+    if (
+      localHeaderOffset + 30 > buffer.length ||
+      localHeaderOffset < 0
+    ) {
+      throw new Error('Corrupt zip local file header');
+    }
     const localNameLen = buffer.readUInt16LE(localHeaderOffset + 26);
     const localExtraLen = buffer.readUInt16LE(localHeaderOffset + 28);
     const dataStart = localHeaderOffset + 30 + localNameLen + localExtraLen;
+    if (dataStart + compSize > buffer.length) {
+      throw new Error('Corrupt zip local file data');
+    }
     const compressedData = buffer.subarray(dataStart, dataStart + compSize);
+
+    const remaining = maxInflatedBytes - totalInflated;
+    if (remaining <= 0 || declaredUncompSize > remaining) {
+      throw new Error(
+        `Zip exceeds maximum inflated size of ${maxInflatedBytes} bytes (prefer the CLI for large vaults)`,
+      );
+    }
 
     let data: Buffer;
     if (method === 0) {
+      if (compSize > remaining) {
+        throw new Error(
+          `Zip exceeds maximum inflated size of ${maxInflatedBytes} bytes (prefer the CLI for large vaults)`,
+        );
+      }
       data = Buffer.from(compressedData);
     } else if (method === 8) {
-      data = inflateRawSync(compressedData);
+      try {
+        data = inflateRawSync(compressedData, {
+          maxOutputLength: remaining,
+        });
+      } catch {
+        throw new Error(
+          `Zip exceeds maximum inflated size of ${maxInflatedBytes} bytes (prefer the CLI for large vaults)`,
+        );
+      }
     } else {
       throw new Error(`Unsupported zip compression method: ${method}`);
+    }
+
+    totalInflated += data.length;
+    if (totalInflated > maxInflatedBytes) {
+      throw new Error(
+        `Zip exceeds maximum inflated size of ${maxInflatedBytes} bytes (prefer the CLI for large vaults)`,
+      );
     }
 
     entries.push({ name, data });

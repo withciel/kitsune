@@ -12,6 +12,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import { VAULT_ZIP_LIMITS } from '@/lib/vault-zip-limits';
 
 interface CollectionOption {
   name: string;
@@ -69,6 +70,12 @@ export function VaultPanel() {
     const file = fileInputRef.current?.files?.[0];
     if (!file) {
       setError('Choose a .zip file of markdown notes first.');
+      return;
+    }
+    if (file.size > VAULT_ZIP_LIMITS.maxUploadBytes) {
+      setError(
+        `Zip exceeds the ${Math.round(VAULT_ZIP_LIMITS.maxUploadBytes / (1024 * 1024))} MB browser upload limit — use the CLI commands below for large vaults.`,
+      );
       return;
     }
     setBusy(true);

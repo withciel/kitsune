@@ -7,6 +7,7 @@ import { requireWorkspace } from '@/lib/require-workspace';
 import { parseVaultMarkdown } from '@/lib/vault-md';
 import type { ZipEntry } from '@/lib/vault-zip';
 import { readZip } from '@/lib/vault-zip';
+import { VAULT_ZIP_LIMITS } from '@/lib/vault-zip-limits';
 
 interface ImportError {
   path: string;
@@ -40,12 +41,31 @@ export async function POST(request: Request) {
     if (!(file instanceof Blob)) {
       throw new KitsuneError('file is required', 'validation');
     }
+    if (file.size > VAULT_ZIP_LIMITS.maxUploadBytes) {
+      throw new KitsuneError(
+        `Zip exceeds ${VAULT_ZIP_LIMITS.maxUploadBytes} byte upload limit (prefer the CLI for large vaults)`,
+        'validation',
+      );
+    }
 
     const buffer = Buffer.from(await file.arrayBuffer());
+    if (buffer.byteLength > VAULT_ZIP_LIMITS.maxUploadBytes) {
+      throw new KitsuneError(
+        `Zip exceeds ${VAULT_ZIP_LIMITS.maxUploadBytes} byte upload limit (prefer the CLI for large vaults)`,
+        'validation',
+      );
+    }
     let zipEntries: ZipEntry[];
     try {
       zipEntries = readZip(buffer);
-    } catch {
+    } catch (err) {
+      const message = err instanceof Error ? err.message : '';
+      if (
+        message.includes('too many entries') ||
+        message.includes('maximum inflated size')
+      ) {
+        throw new KitsuneError(message, 'validation');
+      }
       throw new KitsuneError('Could not read zip file', 'validation');
     }
 
