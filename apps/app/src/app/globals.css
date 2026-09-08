@@ -153,4 +153,11 @@
   .animate-pulse {
     animation: none !important;
   }
+
+  [data-slot="tooltip-content"],
+  [data-slot="dialog-content"],
+  [data-slot="sheet-content"] {
+    animation: none !important;
+    transition: none !important;
+  }
 }
