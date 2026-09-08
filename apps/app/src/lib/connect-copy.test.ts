@@ -1,8 +1,8 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import {
-  MCP_CONSENT_UI_SHIPPED,
   allConnectGuideSteps,
+  MCP_CONSENT_UI_SHIPPED,
 } from './connect-copy.ts';
 
 describe('connect copy honesty', () => {
@@ -21,5 +21,11 @@ describe('connect copy honesty', () => {
     if (MCP_CONSENT_UI_SHIPPED) return;
     const blob = allConnectGuideSteps().join('\n');
     assert.match(blob, /sign in|signed in|login/i);
+  });
+
+  it('mentions Approve when consent UI is shipped', () => {
+    if (!MCP_CONSENT_UI_SHIPPED) return;
+    const blob = allConnectGuideSteps().join('\n');
+    assert.match(blob, /Approve/i);
   });
 });

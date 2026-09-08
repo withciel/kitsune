@@ -1,4 +1,4 @@
-export const MCP_CONSENT_UI_SHIPPED = false;
+export const MCP_CONSENT_UI_SHIPPED = true;
 
 export function cursorRemoteSteps(origin = ''): string[] {
   const mcpUrl = origin ? `${origin}/api/mcp` : 'your KitsuneOS MCP URL';

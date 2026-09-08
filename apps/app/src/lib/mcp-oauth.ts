@@ -11,6 +11,7 @@ import type { CredentialContext } from '@kitsuneos/server';
 
 const ACCESS_TOKEN_TTL_SECONDS = 60 * 60;
 const AUTH_CODE_TTL_SECONDS = 10 * 60;
+const PENDING_CONSENT_TTL_SECONDS = 10 * 60;
 
 function oauthSecret(): string {
   const secret =
@@ -118,6 +119,15 @@ export function newAuthCode(): string {
   return randomBytes(24).toString('base64url');
 }
 
+/** Opaque id for a pending consent row (not a credential — no scope on its own). */
+export function newPendingConsentId(): string {
+  return randomBytes(24).toString('base64url');
+}
+
+export function pendingConsentTtlSeconds(): number {
+  return PENDING_CONSENT_TTL_SECONDS;
+}
+
 export function newClientSecret(): string {
   return randomBytes(32).toString('base64url');
 }
@@ -151,6 +161,19 @@ export async function ensureMcpOAuthTables(
       code_challenge text NOT NULL,
       code_challenge_method text NOT NULL,
       scope text NOT NULL DEFAULT 'mcp:tools',
+      expires_at timestamptz NOT NULL,
+      created_at timestamptz NOT NULL DEFAULT now()
+    );
+    CREATE TABLE IF NOT EXISTS kitsune.mcp_oauth_pending (
+      id text PRIMARY KEY,
+      client_id text NOT NULL REFERENCES kitsune.mcp_oauth_clients(client_id) ON DELETE CASCADE,
+      workspace_id uuid NOT NULL,
+      principal_id uuid NOT NULL,
+      redirect_uri text NOT NULL,
+      code_challenge text NOT NULL,
+      code_challenge_method text NOT NULL,
+      scope text NOT NULL DEFAULT 'mcp:tools',
+      state text NOT NULL DEFAULT '',
       expires_at timestamptz NOT NULL,
       created_at timestamptz NOT NULL DEFAULT now()
     );
