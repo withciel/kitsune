@@ -1,25 +1,29 @@
 export {
+  ensureAgentBlueprint,
+  type MintAutonomousAgentTokenResult,
+  mintAutonomousAgentToken,
+  resetAgentBlueprintCache,
+} from './agents.js';
+export {
+  type EmitAuditEventInput,
+  emitAuditEvent,
+  type WorkOSAuditAction,
+} from './audit.js';
+export {
   getWorkOS,
   isWorkOSConfigured,
   resetWorkOSClient,
 } from './client.js';
 export {
-  ensureAgentBlueprint,
-  mintAutonomousAgentToken,
-  resetAgentBlueprintCache,
-  type MintAutonomousAgentTokenResult,
-} from './agents.js';
+  FGA_AGENT_RESOURCE_TYPE,
+  registerAgentResource,
+} from './fga.js';
 export {
-  emitAuditEvent,
-  type EmitAuditEventInput,
-  type WorkOSAuditAction,
-} from './audit.js';
-export {
+  type EnsureOrganizationInput,
+  type EnsureOrganizationResult,
   ensureMembership,
   ensureOrganization,
   inviteToOrganization,
-  type EnsureOrganizationInput,
-  type EnsureOrganizationResult,
 } from './organizations.js';
 export {
   createWidgetToken,
@@ -31,14 +35,10 @@ export {
   fromWorkOSRoleSlug,
   KITSUNE_AGENT_BLUEPRINT_NAME,
   KITSUNE_AGENT_PERMISSIONS,
-  toWorkOSRoleSlug,
   type KitsuneWorkspaceRole,
+  toWorkOSRoleSlug,
 } from './roles.js';
 export {
   constructWorkOSWebhookEvent,
   type WorkOSWebhookEvent,
 } from './webhooks.js';
-export {
-  FGA_AGENT_RESOURCE_TYPE,
-  registerAgentResource,
-} from './fga.js';

@@ -1,7 +1,7 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { WidgetTokenScope } from '@kitsuneos/workos';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
 export function useWorkOsWidgetToken(scopes?: WidgetTokenScope[]) {
   const [token, setToken] = useState<string | null>(null);

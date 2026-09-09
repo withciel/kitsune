@@ -14,8 +14,9 @@ export async function GET() {
     const ctx = await requireWorkspace();
     requireWorkspaceAdmin(ctx);
     const people = await engine.listWorkspaceMemberships(ctx.workspaceId);
-    const workosOrganizationId =
-      await engine.getWorkspaceWorkosOrganizationId(ctx.workspaceId);
+    const workosOrganizationId = await engine.getWorkspaceWorkosOrganizationId(
+      ctx.workspaceId,
+    );
     return NextResponse.json({
       people,
       workosOrganizationId,
@@ -45,8 +46,7 @@ export async function POST(request: Request) {
     if (!body.email?.trim()) {
       return NextResponse.json({ error: 'Email is required' }, { status: 400 });
     }
-    const role: 'admin' | 'member' =
-      body.role === 'admin' ? 'admin' : 'member';
+    const role: 'admin' | 'member' = body.role === 'admin' ? 'admin' : 'member';
     const result = await invitePersonViaWorkOS(engine, {
       workspaceId: ctx.workspaceId,
       actorUserId: ctx.userId,

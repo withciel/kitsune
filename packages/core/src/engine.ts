@@ -5594,10 +5594,9 @@ export class KitsuneEngine {
   ): Promise<string | null> {
     const result = await this.ownerPool.query<{
       workos_organization_id: string | null;
-    }>(
-      `SELECT workos_organization_id FROM kitsune.workspaces WHERE id = $1`,
-      [workspaceId],
-    );
+    }>(`SELECT workos_organization_id FROM kitsune.workspaces WHERE id = $1`, [
+      workspaceId,
+    ]);
     return result.rows[0]?.workos_organization_id ?? null;
   }
 

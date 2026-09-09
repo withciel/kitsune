@@ -1,3 +1,8 @@
+export {
+  type AgentMembership,
+  createAgentViaWorkOS,
+} from './create-agent-workos.js';
+export { type InviteRole, invitePersonViaWorkOS } from './invite-workos.js';
 export type {
   CreateAdditionalWorkspaceInput,
   CreateAdditionalWorkspaceResult,
@@ -8,12 +13,6 @@ export {
   createAdditionalWorkspaceForUser,
   provisionUserWorkspace,
 } from './provision-workspace.js';
-export { syncWorkspaceToWorkOS } from './sync-workos.js';
-export { invitePersonViaWorkOS, type InviteRole } from './invite-workos.js';
-export {
-  createAgentViaWorkOS,
-  type AgentMembership,
-} from './create-agent-workos.js';
 export type { StarterCollectionIds } from './seed-collections.js';
 export {
   defineStarterCollections,
@@ -25,3 +24,4 @@ export {
   POSTS_COLLECTION,
   POSTS_DEFINITION,
 } from './seed-collections.js';
+export { syncWorkspaceToWorkOS } from './sync-workos.js';

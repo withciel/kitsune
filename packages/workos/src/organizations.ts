@@ -1,5 +1,5 @@
 import { getWorkOS, isWorkOSConfigured } from './client.js';
-import { toWorkOSRoleSlug, type KitsuneWorkspaceRole } from './roles.js';
+import { type KitsuneWorkspaceRole, toWorkOSRoleSlug } from './roles.js';
 
 export interface EnsureOrganizationInput {
   /** Kitsune workspace UUID — stored as WorkOS organization external_id. */
@@ -27,8 +27,9 @@ export async function ensureOrganization(
   if (!workos) return null;
 
   try {
-    const existing =
-      await workos.organizations.getOrganizationByExternalId(input.workspaceId);
+    const existing = await workos.organizations.getOrganizationByExternalId(
+      input.workspaceId,
+    );
     if (input.ownerWorkosUserId) {
       await ensureMembership({
         organizationId: existing.id,
@@ -59,10 +60,9 @@ export async function ensureOrganization(
     const message = error instanceof Error ? error.message : String(error);
     if (/external.?id|already exists|conflict/i.test(message)) {
       try {
-        const match =
-          await workos.organizations.getOrganizationByExternalId(
-            input.workspaceId,
-          );
+        const match = await workos.organizations.getOrganizationByExternalId(
+          input.workspaceId,
+        );
         return { organizationId: match.id, created: false, skipped: false };
       } catch {
         // fall through
@@ -81,12 +81,13 @@ export async function ensureMembership(input: {
   const workos = getWorkOS();
   if (!workos) return false;
   try {
-    const memberships =
-      await workos.userManagement.listOrganizationMemberships({
+    const memberships = await workos.userManagement.listOrganizationMemberships(
+      {
         organizationId: input.organizationId,
         userId: input.workosUserId,
         limit: 1,
-      });
+      },
+    );
     if (memberships.data[0]) {
       const current = memberships.data[0];
       const desired = toWorkOSRoleSlug(input.role);

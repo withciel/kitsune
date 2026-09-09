@@ -29,12 +29,11 @@ export async function registerAgentResource(input: {
     // Idempotent: resource already exists for this external id.
     if (/already exists|conflict|duplicate/i.test(message)) {
       try {
-        const existing =
-          await workos.authorization.getResourceByExternalId({
-            organizationId: input.organizationId,
-            resourceTypeSlug: FGA_AGENT_RESOURCE_TYPE,
-            externalId: input.principalId,
-          });
+        const existing = await workos.authorization.getResourceByExternalId({
+          organizationId: input.organizationId,
+          resourceTypeSlug: FGA_AGENT_RESOURCE_TYPE,
+          externalId: input.principalId,
+        });
         return existing.id;
       } catch {
         // fall through

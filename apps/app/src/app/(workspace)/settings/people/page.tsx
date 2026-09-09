@@ -1,13 +1,13 @@
 'use client';
 
 import { Bot, ShieldCheck, Users } from 'lucide-react';
-import { WorkOsPeopleWidget } from '@/components/settings/workos/workos-widgets';
 import { SettingsNav } from '@/components/settings/settings-nav';
 import {
   SettingsCallout,
   SettingsPageHeader,
   SettingsSection,
 } from '@/components/settings/settings-section';
+import { WorkOsPeopleWidget } from '@/components/settings/workos/workos-widgets';
 
 export default function SettingsPeoplePage() {
   return (

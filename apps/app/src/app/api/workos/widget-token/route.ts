@@ -1,16 +1,13 @@
+import { syncWorkspaceToWorkOS } from '@kitsuneos/provisioning';
 import {
   createWidgetToken,
   isWorkOSConfigured,
   type WidgetTokenScope,
 } from '@kitsuneos/workos';
-import { syncWorkspaceToWorkOS } from '@kitsuneos/provisioning';
 import { NextResponse } from 'next/server';
 import { engine } from '@/lib/engine';
 import { jsonError } from '@/lib/http-error';
-import {
-  isWorkspaceAdmin,
-  requireWorkspace,
-} from '@/lib/require-workspace';
+import { isWorkspaceAdmin, requireWorkspace } from '@/lib/require-workspace';
 
 const ADMIN_SCOPES: WidgetTokenScope[] = [
   'widgets:users-table:manage',

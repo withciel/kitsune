@@ -1,18 +1,18 @@
 'use client';
 
 import { useState } from 'react';
-import {
-  WorkOsAuditStreamingWidget,
-  WorkOsDirectorySyncWidget,
-  WorkOsDomainWidget,
-  WorkOsSsoWidget,
-} from '@/components/settings/workos/workos-widgets';
 import { SettingsNav } from '@/components/settings/settings-nav';
 import {
   SettingsCallout,
   SettingsPageHeader,
   SettingsSection,
 } from '@/components/settings/settings-section';
+import {
+  WorkOsAuditStreamingWidget,
+  WorkOsDirectorySyncWidget,
+  WorkOsDomainWidget,
+  WorkOsSsoWidget,
+} from '@/components/settings/workos/workos-widgets';
 import { Button } from '@/components/ui/button';
 
 const PORTAL_INTENTS = [
@@ -76,9 +76,7 @@ export default function SettingsEnterprisePage() {
             </Button>
           ))}
         </div>
-        {portalError ? (
-          <SettingsCallout>{portalError}</SettingsCallout>
-        ) : null}
+        {portalError ? <SettingsCallout>{portalError}</SettingsCallout> : null}
       </SettingsSection>
 
       <SettingsSection

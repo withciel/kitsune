@@ -1,5 +1,6 @@
 'use client';
 
+import type { WidgetTokenScope } from '@kitsuneos/workos';
 import {
   AdminPortalAuditLogStreaming,
   AdminPortalDomainVerification,
@@ -12,7 +13,6 @@ import {
 import { OperateLoadingBlock } from '@/components/operate/loading-block';
 import { SettingsCallout } from '@/components/settings/settings-section';
 import { useWorkOsWidgetToken } from '@/hooks/use-workos-widget-token';
-import type { WidgetTokenScope } from '@kitsuneos/workos';
 
 function WidgetShell({
   scopes,

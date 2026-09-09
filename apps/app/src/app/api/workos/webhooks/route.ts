@@ -13,7 +13,10 @@ import { engine } from '@/lib/engine';
  */
 export async function POST(request: Request) {
   if (!isWorkOSConfigured()) {
-    return NextResponse.json({ error: 'WorkOS not configured' }, { status: 503 });
+    return NextResponse.json(
+      { error: 'WorkOS not configured' },
+      { status: 503 },
+    );
   }
 
   const secret = process.env.WORKOS_WEBHOOK_SECRET?.trim();

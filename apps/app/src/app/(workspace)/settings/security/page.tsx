@@ -1,11 +1,11 @@
 'use client';
 
-import { WorkOsSecurityWidget } from '@/components/settings/workos/workos-widgets';
 import { SettingsNav } from '@/components/settings/settings-nav';
 import {
   SettingsPageHeader,
   SettingsSection,
 } from '@/components/settings/settings-section';
+import { WorkOsSecurityWidget } from '@/components/settings/workos/workos-widgets';
 
 export default function SettingsSecurityPage() {
   return (

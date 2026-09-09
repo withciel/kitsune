@@ -17,10 +17,10 @@ describe('@kitsuneos/workos roles', () => {
   });
 
   it('defines agent permission ceiling without write by default', () => {
-    assert.deepEqual([...KITSUNE_AGENT_PERMISSIONS], [
-      'kitsune:propose',
-      'kitsune:read',
-    ]);
+    assert.deepEqual(
+      [...KITSUNE_AGENT_PERMISSIONS],
+      ['kitsune:propose', 'kitsune:read'],
+    );
   });
 
   it('reports WorkOS unconfigured when API key missing', () => {
